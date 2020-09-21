@@ -1,4 +1,1 @@
-# IndianPoker
-
-- Django
-- Redis
+#IndianPoker
