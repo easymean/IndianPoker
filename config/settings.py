@@ -42,6 +42,7 @@ DJANGO_APPS = [
 PROJECT_APPS = [
     "testpost",
     "chat",
+    "game",
 ]
 
 THIRD_PARTY_APPS = [
