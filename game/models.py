@@ -1,5 +1,7 @@
+import uuid
 from django.db import models
 
+from utils.redis_client import r
 
 class User(models.Model):
     nickname = models.CharField(max_length=50)
@@ -9,6 +11,16 @@ class User(models.Model):
     def __str__(self):
         return self.nickname
 
+    def make_user(self):
+        hash_name = self.pk
+        key_value = {
+            "type": "user",
+            "nickname": self.nickname,
+            "ready_state": self.ready_state,
+            "score": self.score
+        }
+        r.hmset(hash_name, key_value)
+        r.rpush("user", hash_name);
 
 
 class Room(models.Model):
