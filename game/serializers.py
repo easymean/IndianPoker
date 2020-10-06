@@ -25,17 +25,10 @@ class UserSerializer(ModelSerializer):
 class RoomSerializer(ModelSerializer):
     class Meta:
         model = Room
-        exclude = ["state", "round", "created_at"]
+        fields = '__all__'
+        read_only_fields=["id", "group_name", "state", "round"]
 
     def create(self, validated_data):
         room = Room(**validated_data)
-        hash_name = room.pk
-        key_value = {
-            "type": "room",
-            "name": room.name,
-            "state": room.state,
-            "round": room.round,
-            "created_at": room.created_at
-        }
-        r.hmset(hash_name, key_value)
+        room.make_room();
         return room
