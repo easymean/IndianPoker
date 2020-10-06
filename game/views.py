@@ -1,8 +1,4 @@
-#api
-# create user / delete user
-# create room / delete room
-# enter room / exit room
-# start game / end game
+from django.shortcuts import render
 
 from django.core.cache import cache
 
@@ -40,8 +36,12 @@ def create_room(request):
         except serializers.ValidationError:
             return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        serializer.save()
-        return Response(data=serializer.data, status=status.HTTP_200_OK)
+        room = serializer.save()
+
+        render(request, 'game/room.html', {
+            'room_id': room.id
+        })
+        return Response(data=serializer.data, status=status.HTTP_301_MOVED_PERMANENTLY)
 
 
 @api_view(['GET'])
