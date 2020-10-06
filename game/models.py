@@ -10,7 +10,9 @@ class User(models.Model):
         return self.nickname
 
 
+
 class Room(models.Model):
+    id = models.UUIDField(primary_key=True, default= uuid.uuid4(), editable=False)
     name = models.CharField(max_length=500)
     group_name = models.SlugField(unique=True)
     state = models.IntegerField(default=0) # 0 한명만 있음 1 두 명이 있음 2 게임 시작
