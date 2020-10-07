@@ -139,11 +139,13 @@ REST_FRAMEWORK = {
     ]
 }
 
+redis_host = os.environ.get('REDIS_HOST', 'localhost')
+
 # Cache
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",
+        "LOCATION": "redis://" + redis_host + ":6379/1", # select database 1
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
             "PICKLE_VERSION": -1,
@@ -158,9 +160,6 @@ SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "default"
 
 CACHE_TTL = 60 * 1
-
-
-redis_host = os.environ.get('REDIS_HOST', 'localhost')
 
 # channel layer definition
 ASGI_APPLICATION = "routing.application"
