@@ -1,12 +1,14 @@
 import uuid
-from django.db import models
 
 from utils.redis_client import r
+from enum import Enum
 
-class User(models.Model):
-    nickname = models.CharField(max_length=50)
-    ready_state = models.IntegerField(default=0)
-    score = models.IntegerField(default=10)
+
+class RoomState(int, Enum):
+    EMPTY = 1
+    READY = 2
+    START = 3
+
 class User:
     def __init__(self, nickname):
         self.id = uuid.uuid4()
