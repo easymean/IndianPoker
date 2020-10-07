@@ -1,48 +1,29 @@
-from django.shortcuts import render
-
-from django.core.cache import cache
+from django.shortcuts import redirect
 
 from rest_framework.decorators import api_view
-from rest_framework import serializers, status
+from rest_framework import serializers, status, generics
 from rest_framework.response import Response
 
 from .serializers import UserSerializer, RoomSerializer
 
 
-@api_view(['POST'])
-def create_user(request):
-    if request.method == 'POST':
-        serializer = UserSerializer(data=request.data)
-        try:
-            serializer.is_valid(raise_exception=True)
-        except serializers.ValidationError:
-            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class CreateUser(generics.CreateAPIView):
+    serializer_class = UserSerializer
 
-        serializer.save()
-        return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+class CreateRoom(generics.CreateAPIView):
+    serializer_class = RoomSerializer
+
+    def create(self, request, *args, **kwargs):
+        response = super(CreateRoom, self).create(request, *args, **kwargs)
+        data = response.data
+        str_id = data["id"]
+        return redirect("/game/" + str_id + "/")
 
 
 @api_view(['DELETE'])
 def delete_user(request):
     pass
-
-
-@api_view(['POST'])
-def create_room(request):
-    if request.method == 'POST':
-        serializer = RoomSerializer(data=request.data)
-        try:
-            serializer.is_valid(raise_exception=True)
-        except serializers.ValidationError:
-            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        room = serializer.save()
-
-        render(request, 'game/room.html', {
-            'room_id': room.id
-        })
-        return Response(data=serializer.data, status=status.HTTP_301_MOVED_PERMANENTLY)
-
 
 @api_view(['GET'])
 def enter_room(request):
