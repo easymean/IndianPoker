@@ -7,14 +7,19 @@ class User(models.Model):
     nickname = models.CharField(max_length=50)
     ready_state = models.IntegerField(default=0)
     score = models.IntegerField(default=10)
+class User:
+    def __init__(self, nickname):
+        self.id = uuid.uuid4()
+        self.nickname = nickname
+        self.ready_state = 0
+        self.score = 10
 
     def __str__(self):
-        return self.nickname
+        return str(self.id)
 
     def make_user(self):
-        hash_name = self.pk
+        hash_name = str(self.id)
         key_value = {
-            "type": "user",
             "nickname": self.nickname,
             "ready_state": self.ready_state,
             "score": self.score
@@ -23,12 +28,14 @@ class User(models.Model):
         r.rpush("user", hash_name);
 
 
-class Room(models.Model):
-    id = models.UUIDField(primary_key=True, default= uuid.uuid4(), editable=False)
-    name = models.CharField(max_length=500)
-    group_name = models.SlugField(unique=True)
-    state = models.IntegerField(default=0) # 0 한명만 있음 1 두 명이 있음 2 게임 시작
-    round = models.IntegerField(default=0)
+class Room:
+
+    def __init__(self, name, group_name, id=None):
+        self.id = uuid.uuid4()
+        self.name = name
+        self.group_name = group_name
+        self.state = RoomState.EMPTY
+        self.round = 0
 
     def __str__(self):
         return str(self.id)
@@ -36,8 +43,8 @@ class Room(models.Model):
     def make_room(self):
         hash_name = str(self.id)
         key_value = {
-            "type": "room",
             "name": self.name,
+            "group_name": self.group_name,
             "state": self.state,
             "round": self.round,
         }
