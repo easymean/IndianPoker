@@ -161,7 +161,7 @@ SESSION_CACHE_ALIAS = "default"
 CACHE_TTL = 60 * 1
 
 # channel layer definition
-ASGI_APPLICATION = "routing.application"
+ASGI_APPLICATION = "config.routing.application"
 CHANNEL_LAYERS = {
     "default" : {
         # This app uses the Redis channel layer implementation asgi_redis
