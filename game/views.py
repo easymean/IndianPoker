@@ -13,6 +13,13 @@ def index(request):
 class CreateUser(generics.CreateAPIView):
     serializer_class = UserSerializer
 
+    def create(self, request, *args, **kwargs):
+        response = super(CreateUser, self).create(request, *args, **kwargs)
+        data = response.data
+        user_id = data["id"]
+        response.set_cookie("user_id", user_id)
+        return response
+
 
 class CreateRoom(generics.CreateAPIView):
     serializer_class = RoomSerializer
