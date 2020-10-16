@@ -26,12 +26,23 @@ def delete_user(request):
     pass
 
 @api_view(['GET'])
-def enter_room(request):
-    if request.method == 'GET':
-        pass
+def enter_room(request, room_id):
+    user_id = request.COOKIES['user_id']
+    user_enter_room(user_id=user_id, room_id=room_id)
+    return render(request, 'game/room.html', {
+        'room_id': room_id,
+        'user_id': user_id
+    })
+
+
 
 @api_view(['GET'])
 def exit_room(request):
+    pass
+
+
+@api_view(['DELETE'])
+def delete_user(request):
     pass
 
 
