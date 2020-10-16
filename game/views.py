@@ -1,8 +1,11 @@
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 
 from rest_framework.decorators import api_view
 from rest_framework import serializers, status, generics
 from rest_framework.response import Response
+
+from .models import user_enter_room
+from utils.redis_client import r
 
 from .serializers import UserSerializer, RoomSerializer
 
@@ -31,9 +34,9 @@ class CreateRoom(generics.CreateAPIView):
         return redirect(room_id + "/")
 
 
-@api_view(['DELETE'])
-def delete_user(request):
-    pass
+def find_room(room_id):
+    return r.hvals(room_id)
+
 
 @api_view(['GET'])
 def enter_room(request, room_id):
