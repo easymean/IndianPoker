@@ -53,3 +53,21 @@ class Room:
         r.hmset(hash_name, key_value);
         r.rpush("room", hash_name);
 
+
+class InfoMessage:
+    def __init__(self, room_id, sender_id):
+        self.type = 0
+        self.room_id = room_id
+        self.sender_id = sender_id
+        self.message = ""
+
+    def enter_room(self):
+        self.type = MessageType.ENTER
+        self.message = f"{self.sender_id} has entered the room {self.room_id}"
+        hash_map = {
+            "type": self.type,
+            "sender_id": self.sender_id,
+            "room_id" : self.room_id
+        }
+        r.rpush("user_room_list", hash_map)
+        self.increase_user_count()
