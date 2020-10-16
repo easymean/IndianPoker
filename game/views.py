@@ -17,8 +17,8 @@ class CreateRoom(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         response = super(CreateRoom, self).create(request, *args, **kwargs)
         data = response.data
-        str_id = data["id"]
-        return redirect("/game/" + str_id + "/")
+        room_id = data["id"]
+        return redirect(room_id + "/")
 
 
 @api_view(['DELETE'])
