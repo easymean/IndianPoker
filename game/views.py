@@ -7,6 +7,9 @@ from rest_framework.response import Response
 from .serializers import UserSerializer, RoomSerializer
 
 
+def index(request):
+    return render(request, 'game/index.html', {})
+
 class CreateUser(generics.CreateAPIView):
     serializer_class = UserSerializer
 
