@@ -4,6 +4,7 @@ from .models import User, Room
 
 
 class UserSerializer(serializers.Serializer):
+    id = serializers.UUIDField(required=False)
     nickname = serializers.CharField(max_length=100)
 
     def create(self, validated_data):
@@ -15,7 +16,6 @@ class UserSerializer(serializers.Serializer):
 class RoomSerializer(serializers.Serializer):
     id = serializers.UUIDField(required=False)
     name = serializers.CharField(max_length=100)
-    group_name = serializers.CharField(max_length=100)
 
     def create(self, validated_data):
         room = Room(**validated_data)
