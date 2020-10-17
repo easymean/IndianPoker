@@ -34,9 +34,6 @@ class CreateRoom(generics.CreateAPIView):
         return redirect(room_id + "/")
 
 
-def find_room(room_id):
-    return r.hvals(room_id)
-
 
 @api_view(['GET'])
 def enter_room(request, room_id):

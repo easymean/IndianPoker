@@ -59,7 +59,7 @@ class Room:
         r.hmset(hash_name, key_value);
         r.rpush("room", hash_name);
 
-
+#Room
 def increase_user_count(room_id):
     r.hincrby(room_id, "user_count", 1)
 
@@ -77,6 +77,9 @@ def user_enter_room(room_id, user_id):
     r.hmset(hash_key, field_value)
     increase_user_count(room_id)
 
+
+def find_room(room_id):
+    return r.hvals(room_id)
 
 
 class InfoMessage:
