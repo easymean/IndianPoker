@@ -81,21 +81,29 @@ def user_enter_room(room_id, user_id):
 def find_room(room_id):
     return r.hvals(room_id)
 
+class ClientMessage:
+    type = 0
+    room_id = ""
+    sender_id = ""
+    nickname= ""
+    message = ""
 
-class InfoMessage:
-    def __init__(self, room_id, sender_id):
-        self.type = 0
+    def __init__(self, room_id, sender_id, nickname=nickname):
         self.room_id = room_id
         self.sender_id = sender_id
-        self.message = ""
+        self.nickname = nickname
 
-    def enter_room(self):
+
+class EnterMessage(ClientMessage):
+    def __init__(self, room_id, sender_id, nickname):
+        super().__init__(room_id, sender_id, nickname)
         self.type = MessageType.ENTER
-        self.message = f"{self.sender_id} has entered the room {self.room_id}"
-        hash_map = {
-            "type": self.type,
-            "sender_id": self.sender_id,
-            "room_id" : self.room_id
-        }
-        r.rpush("user_room_list", hash_map)
-        self.increase_user_count()
+        self.message = f'{self.nickname}님이 입장하셨습니다.'
+
+
+class ExitMessage(ClientMessage):
+    def __init__(self, room_id, sender_id, nickname):
+        super().__init__(room_id, sender_id, nickname)
+        self.type = MessageType.EXIT
+        self.message = f'{self.nickname}님이 퇴장하셨습니다.'
+
