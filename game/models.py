@@ -36,49 +36,61 @@ class User:
         r.rpush("user", hash_key);
 
 
+def delete_user(user_id):
+    r.hdel(user_id)
+    # *확인: r.lrm("user", user_id*)
+
+
+def get_nickname(user_id):
+    return r.hget(user_id, "nickname")
+
+
 class Room:
     def __init__(self, name):
         self.id = uuid.uuid4()
         self.name = name
         self.state = RoomState.EMPTY
-        self.user_count = 0
         self.round = 0
+        self.users = ""
 
     def __str__(self):
         return str(self.id)
 
     def make_room(self):
-        hash_name = str(self.id)
-        key_value = {
+        hash_key = str(self.id)
+        field_value = {
             "name": self.name,
             "state": self.state,
-            "user_count":self.user_count,
             "round": self.round,
+            "users": self.users
         }
-        r.hmset(hash_name, key_value);
-        r.rpush("room", hash_name);
-
-#Room
-def increase_user_count(room_id):
-    r.hincrby(room_id, "user_count", 1)
-
-
-def decrease_user_count(room_id):
-    r.hdecrby(room_id, "user_count", 1)
-
-
-def user_enter_room(room_id, user_id):
-    hash_key = user_id
-    field_value = {
-            "type": MessageType.ENTER,
-            "room_id" : room_id
-    }
-    r.hmset(hash_key, field_value)
-    increase_user_count(room_id)
+        r.hmset(hash_key, field_value);
+        r.rpush("room", hash_key);
 
 
 def find_room(room_id):
     return r.hvals(room_id)
+
+
+def get_user_list(room_id):
+    return r.hget(room_id, "users")
+
+
+def get_user_count(room_id):
+    user_str = r.hget(room_id, "users")
+    return user_str.count(',')
+
+
+def enter_room(room_id, user_id):
+    user_str = str(get_user_list(room_id))
+    str_list = [user_str, user_id]
+    user_str = ','.join(str_list)
+    r.hset(user_id, "users", user_str)
+
+
+def delete_room(room_id):
+    pass
+
 
 class ClientMessage:
     type = 0
