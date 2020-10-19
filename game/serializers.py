@@ -19,5 +19,5 @@ class RoomSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         room = Room(**validated_data)
-        room.make_room();
+        room.make_room()
         return room

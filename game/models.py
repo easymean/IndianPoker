@@ -27,14 +27,14 @@ class User:
         return str(self.id)
 
     def make_user(self):
-        hash_name = str(self.id)
-        key_value = {
+        hash_key = str(self.id)
+        field_value = {
             "nickname": self.nickname,
             "ready_state": self.ready_state,
             "score": self.score
         }
-        r.hmset(hash_name, key_value)
-        r.rpush("user", hash_name);
+        r.hmset(hash_key, field_value)
+        r.rpush("user", hash_key);
 
 
 class Room:
