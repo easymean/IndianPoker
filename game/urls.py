@@ -1,13 +1,13 @@
 from django.urls import path
 
-from .views import CreateUser, CreateRoom, enter_room, index, select_room
-
+from . import views
 app_name = "game"
 
 urlpatterns = [
-    path("", index, name='index'),
-    path("user/", CreateUser.as_view()),
-    path("choice/", select_room, name='select_room'),
-    path("room/<str:room_id>/", enter_room, name='enter_room'),
-    path("room/", CreateRoom.as_view()),
+    path("", views.index, name='index'),
+    path("user/", views.CreateUser.as_view()),
+    path("choice/", views.select_room, name='select_room'),
+    path("room/<str:room_id>/", views.enter_room, name='enter_room'),
+    path("room/<str:room_id>/", views.exit_room, name='exit_room'),
+    path("room/", views.CreateRoom.as_view()),
 ]
