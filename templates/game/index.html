@@ -2,54 +2,38 @@
 <html>
 <head>
     <meta charset="utf-8"/>
-    <title>Chat Rooms</title>
+    <title>Index Page</title>
 </head>
 <body>
-    What chat room would you like to enter?<br>
-    <input id="room-name-input" type="text" size="100"><br>
-    <input id="user-name-input" type="text" size="100"><br>
-    <input id="enter-room-submit" type="button" value="Enter">
+    You have to login first.<br>
+    username : <input id="user-name-input" type="text" size="100" placeholder="닉네임을 입력해주세요"><br>
+    <input id="login-submit" type="button" value="Enter">
 
     <script>
-        document.querySelector('#room-name-input').focus();
-        document.querySelector('#room-name-input').onkeyup = function(e) {
-            if (e.keyCode === 13) {  // enter, return
-                document.querySelector('#enter-room-submit').click();
-            }
-        };
-
         document.querySelector('#user-name-input').focus();
         document.querySelector('#user-name-input').onkeyup = function(e) {
             if (e.keyCode === 13) {  // enter, return
-                document.querySelector('#enter-room-submit').click();
+                document.querySelector('#login-submit').click();
             }
         };
 
-        document.querySelector('#enter-room-submit').onclick = function(e) {
-            var roomName = document.querySelector('#room-name-input').value;
+        document.querySelector('#login-submit').onclick = function(e) {
             var userName = document.querySelector('#user-name-input').value;
-            window.location.pathname = `api/game/room/${roomName}/`;
+            var createUserUrl = `http://${window.location.host}/api/game/user/`;
+            var data = {'nickname': userName};
 
-            const gameInfoSocket = new WebSocket(
-               `ws://${window.location.host}/ws/game/room/${roomName}/`
-                );
+            fetch(createUserUrl, {
+                method: 'POST',
+                body : JSON.stringify(data),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(res => res.json())
+            .then(response => console.log('SUCCESS:', JSON.stringify(response)))
+            .catch(error => console.error('ERROR:', error));
 
-            gameInfoSocket.onclose = function(e){
-                console.error('Game Info socket closed unexpectedly');
-            };
-
-            gameInfoSocket.onmessage = function(e) {
-                    const data = JSON.parse(e.data);
-                    document.querySelector('#chat-log').value += (data.message + '\n');
-            };
-
-            gameInfoSocket.send(JSON.stringify({
-                'type' : 'ENTER',
-                'sender_id': userName
-            }));
+            window.location.pathname = 'api/game/choice/'
         };
-
-
 
     </script>
 </body>
