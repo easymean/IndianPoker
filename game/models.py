@@ -6,13 +6,12 @@ from enum import Enum
 
 class RoomState(int, Enum):
     EMPTY = 1
-    READY = 2
-    START = 3
+    START = 2
 
 
 class MessageType(int, Enum):
     ENTER = 1
-    QUIT = 2
+    EXIT = 2
     CHAT = 3
 
 
