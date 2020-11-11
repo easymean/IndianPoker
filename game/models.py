@@ -5,7 +5,7 @@ from enum import Enum
 
 
 class RoomState(int, Enum):
-    EMPTY = 1
+    READY = 1
     START = 2
 
 
@@ -50,7 +50,7 @@ class Room:
     def __init__(self, name):
         self.id = uuid.uuid4()
         self.name = name
-        self.state = RoomState.EMPTY
+        self.state = RoomState.READY
         self.round = 0
         self.users = ""
 
