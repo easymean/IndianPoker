@@ -75,20 +75,34 @@ def find_room(room_id):
 def delete_room(room_id):
     r.hdel(room_id)
 
+
 def get_user_list(room_id):
     return r.hget(room_id, "users")
 
 
 def get_user_count(room_id):
-    user_str = r.hget(room_id, "users")
-    return user_str.count(',')
+    user_str = str(r.hget(room_id, "users"))
+    if user_str == "":
+        return 0
+
+    return user_str.count(',') + 1
 
 
 def enter_room(room_id, user_id):
-    user_str = str(get_user_list(room_id))
-    str_list = [user_str, user_id]
-    user_str = ','.join(str_list)
-    r.hset(user_id, "users", user_str)
+
+    if get_user_count(room_id) == 2:
+        print("방이 가득 차서 입장 불가능합니다.")
+        return -1
+    else:
+        user_str = str(get_user_list(room_id))
+        str_list = [user_str, user_id]
+        if len(user_str) == 0:
+            user_str = user_id
+        else:
+            user_str = ','.join(str_list)
+        r.hset(room_id, "users", user_str)
+        return 1
+
 
 def exit_room(room_id, user_id):
     delete_user(user_id)
