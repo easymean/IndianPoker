@@ -11,6 +11,8 @@
 
     <input id="exit-message-submit" type="button" value="Exit">
 
+    <input id="ready-message-submit" type="button" value="Ready">
+
     <script type="text/javascript">
         const roomId = "{{ room_id }}";
         const cookieName = 'user_id';
@@ -33,68 +35,60 @@
         };
         const userId = getCookie(cookieName);
 
-        let gameInfoSocket = new WebSocket(
+        let ws = new WebSocket(
             `ws://${window.location.host}/ws/game/room/${roomId}/`
         );
 
-        gameInfoSocket.onopen = (e) => {
+        ws.onopen = (e) => {
             console.log('Game Info socket opened');
-            gameInfoSocket.send(
+            ws.send(
                   JSON.stringify({
                     'type' : 'ENTER',
-                    'sender_id': userId})
+                    'sender_id': userId
+                  })
               );
         };
 
-        gameInfoSocket.onmessage= (event) => {
-            console.log(event);
+        document.querySelector('#ready-message-submit').onclick = (e) => {
+            ws.onopen = (e) => {
+
+                console.log('ready socket opened');
+
+                var msg = {
+                    type : 'READY',
+                    sender_id : userId
+                };
+
+                ws.send(JSON.stringify(msg));
+            };
+        };
+
+        document.querySelector('#exit-message-submit').onclick = (e) => {
+            ws.onopen = (e) => {
+                console.log('exit socket opened');
+
+                var msg = {
+                    type: 'EXIT',
+                    sender_id : userId
+                };
+
+                ws.send(JSON.stringify(msg));
+            };
+        };
+
+        ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
             document.querySelector('#chat-log').value += (data.message + '\n');
         };
 
-        gameInfoSocket.onclose = (e) => {
+
+        ws.onclose = (e) => {
             console.error('Game Info socket closed unexpectedly');
         };
 
 
 
-        document.querySelector('#exit-message-submit').onclick = (e) => {
-            let exitRoomUrl = `http://${window.location.host}/api/game/room/${roomId}/`;
 
-            fetch(exitRoomUrl, {
-                method:'DELETE',
-                headers:'application/json'
-            }
-            ).then(response => response.json())
-            .then(json => {
-                console.log("SUCCESS: " , JSON.stringify(json))
-            })
-            .catch(error => {
-                console.error("ERROR: ", error)
-            });
-
-            let exitSocket = new WebSocket(`ws://${window.location.host}/ws/game/room/${roomId}/`);
-
-            exitSocket.onopen = (e) => {
-                console.log('exit socket opened');
-                exitSocket.send(
-                      JSON.stringify({
-                        'type' : 'EXIT',
-                        'sender_id': userId})
-                  );
-            };
-
-
-            exitSocket.onmessage= (event) => {
-                console.log(event);
-                const data = JSON.parse(event.data);
-                document.querySelector('#chat-log').value += (data.message + '\n');
-            };
-
-           exitSocket.onclose = (e) => {
-                console.error('exit socket closed unexpectedly');
-            };
-        };
 
 
 
