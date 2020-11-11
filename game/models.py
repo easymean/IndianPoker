@@ -42,7 +42,8 @@ def delete_user(user_id):
 
 
 def get_nickname(user_id):
-    return r.hget(user_id, "nickname")
+    nickname = r.hget(user_id, "nickname")
+    return nickname.decode("UTF-8")
 
 
 class Room:
