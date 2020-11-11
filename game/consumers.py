@@ -31,7 +31,7 @@ class GameInfoConsumer(AsyncWebsocketConsumer):
         text_data_json = json.loads(text_data)
         message_type = text_data_json['type']
         sender_id = text_data_json['sender_id']
-        nick_name = get_nickname(sender_id)
+        nickname = get_nickname(sender_id)
 
         lower_message_type = message_type.lower()
         str_list = [lower_message_type, "message"]
@@ -44,7 +44,7 @@ class GameInfoConsumer(AsyncWebsocketConsumer):
                 {
                     'type': parsed_type,
                     'sender_id': sender_id,
-                    'nickname': nick_name
+                    'nickname': nickname
                 }
         )
 
