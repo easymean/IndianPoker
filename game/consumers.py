@@ -3,7 +3,8 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 
 
 # I/O가 왼료된 경우에만 await 함수부분이 실행됨
-from game.models import EnterMessage, ExitMessage, get_nickname, exit_room
+from game.models import EnterMessage, ExitMessage, get_nickname, exit_room, ReadyMessage, get_ready, cancel_ready, \
+    WaitMessage
 
 
 class GameInfoConsumer(AsyncWebsocketConsumer):
@@ -49,9 +50,8 @@ class GameInfoConsumer(AsyncWebsocketConsumer):
     async def enter_message(self, event):
         sender_id = event['sender_id']
         nickname = get_nickname(sender_id)
-        room_id = self.room_name
 
-        info_message = EnterMessage(room_id=room_id, sender_id=sender_id, nickname=nickname)
+        info_message = EnterMessage(room_id=self.room_name, sender_id=sender_id, nickname=nickname)
 
         # send message to websocket
         await self.send(text_data=json.dumps({
@@ -61,14 +61,38 @@ class GameInfoConsumer(AsyncWebsocketConsumer):
     async def exit_message(self, event):
         sender_id = event['sender_id']
         nickname = get_nickname(sender_id)
-        room_id = self.room_name
 
-        info_message = ExitMessage(room_id=room_id, sender_id=sender_id, nickname=nickname)
+        info_message = ExitMessage(room_id=self.room_name, sender_id=sender_id, nickname=nickname)
 
         # delete user from database
-        exit_room(room_id, sender_id)
+        exit_room(self.room_name, sender_id)
 
         # send message to websocket
         await self.send(text_data=json.dumps({
             'message': info_message.message
         }))
+
+    async def ready_message(self, event):
+        sender_id = event['sender_id']
+        nickname = get_nickname(sender_id)
+
+        info_message = ReadyMessage(room_id=self.room_name, sender_id=sender_id, nickname=nickname)
+
+        get_ready(user_id=sender_id)
+
+        await self.send(text_data=json.dumps({
+            'message': info_message.message
+        }))
+
+    async def wait_message(self, event):
+        sender_id = event['sender_id']
+        nickname = get_nickname(sender_id)
+
+        info_message = WaitMessage(room_id=self.room_name, sender_id=sender_id, nickname=nickname)
+
+        cancel_ready(user_id=sender_id)
+
+        await self.send(text_data=json.dumps({
+            'message': info_message.message
+        }))
+

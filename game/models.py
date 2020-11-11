@@ -4,6 +4,11 @@ from utils.redis_client import r
 from enum import Enum
 
 
+class UserState(int, Enum):
+    WAIT = 0
+    READY = 1
+
+
 class RoomState(int, Enum):
     READY = 1
     START = 2
@@ -13,13 +18,19 @@ class MessageType(int, Enum):
     ENTER = 1
     EXIT = 2
     CHAT = 3
+    READY = 4
+    WAIT = 5
+
+
+class GameState(int, Enum):
+    pass
 
 
 class User:
     def __init__(self, nickname):
         self.id = uuid.uuid4()
         self.nickname = nickname
-        self.ready_state = 0
+        self.ready_state = UserState.WAIT
         self.score = 10
 
     def __str__(self):
@@ -43,6 +54,14 @@ def delete_user(user_id):
 def get_nickname(user_id):
     nickname = r.hget(user_id, "nickname")
     return nickname.decode("UTF-8")
+
+
+def get_ready(user_id):
+    r.hset(user_id, "ready_state", UserState.READY)
+
+
+def cancel_ready(user_id):
+    r.hset(user_id, "ready_state", UserState.WAIT)
 
 
 class Room:
@@ -145,3 +164,15 @@ class ExitMessage(ClientMessage):
         self.type = MessageType.EXIT
         self.message = f'{self.nickname}님이 퇴장하셨습니다.'
 
+
+class ReadyMessage(ClientMessage):
+    def __init__(self, room_id, sender_id, nickname):
+        super().__init__(room_id, sender_id, nickname)
+        self.type = MessageType.READY
+        self.message = f'{self.nickname}님 레디를 눌렀습니다'
+        
+class WaitMessage(ClientMessage):
+    def __init__(self, room_id, sender_id, nickname):
+        super().__init__(room_id, sender_id, nickname)
+        self.type = MessageType.WAIT
+        self.message = f'{self.nickname}님 레디를 취소했습니다'
