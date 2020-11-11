@@ -38,7 +38,6 @@ class User:
 
 def delete_user(user_id):
     r.hdel(user_id)
-    # *확인: r.lrm("user", user_id*)
 
 
 def get_nickname(user_id):
@@ -73,6 +72,9 @@ def find_room(room_id):
     return r.hvals(room_id)
 
 
+def delete_room(room_id):
+    r.hdel(room_id)
+
 def get_user_list(room_id):
     return r.hget(room_id, "users")
 
@@ -88,9 +90,19 @@ def enter_room(room_id, user_id):
     user_str = ','.join(str_list)
     r.hset(user_id, "users", user_str)
 
+def exit_room(room_id, user_id):
+    delete_user(user_id)
+    prev_user_str = str(get_user_list(room_id))
+    user_str = ""
+    for user in prev_user_str.split(','):
+        if user != user_id:
+            user_str = user
 
-def delete_room(room_id):
-    pass
+    # 남아 있는 유저가 없으면 방을 삭제한다
+    if len(user_str) == 0:
+        delete_room(room_id)
+    else:
+        r.hset(room_id, "users", user_str)
 
 
 class ClientMessage:
