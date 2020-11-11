@@ -31,6 +31,7 @@ class GameInfoConsumer(AsyncWebsocketConsumer):
         text_data_json = json.loads(text_data)
         message_type = text_data_json['type']
         sender_id = text_data_json['sender_id']
+        nick_name = get_nickname(sender_id)
 
         lower_message_type = message_type.lower()
         str_list = [lower_message_type, "message"]
@@ -42,14 +43,15 @@ class GameInfoConsumer(AsyncWebsocketConsumer):
                 self.room_group_name,
                 {
                     'type': parsed_type,
-                    'sender_id': sender_id
+                    'sender_id': sender_id,
+                    'nickname': nick_name
                 }
         )
 
     # receive message from room group
     async def enter_message(self, event):
         sender_id = event['sender_id']
-        nickname = get_nickname(sender_id)
+        nickname = event['nickname']
 
         info_message = EnterMessage(room_id=self.room_name, sender_id=sender_id, nickname=nickname)
 
@@ -60,7 +62,7 @@ class GameInfoConsumer(AsyncWebsocketConsumer):
 
     async def exit_message(self, event):
         sender_id = event['sender_id']
-        nickname = get_nickname(sender_id)
+        nickname = event['nickname']
 
         info_message = ExitMessage(room_id=self.room_name, sender_id=sender_id, nickname=nickname)
 
@@ -74,7 +76,7 @@ class GameInfoConsumer(AsyncWebsocketConsumer):
 
     async def ready_message(self, event):
         sender_id = event['sender_id']
-        nickname = get_nickname(sender_id)
+        nickname = event['nickname']
 
         info_message = ReadyMessage(room_id=self.room_name, sender_id=sender_id, nickname=nickname)
 
@@ -86,7 +88,7 @@ class GameInfoConsumer(AsyncWebsocketConsumer):
 
     async def wait_message(self, event):
         sender_id = event['sender_id']
-        nickname = get_nickname(sender_id)
+        nickname = event['nickname']
 
         info_message = WaitMessage(room_id=self.room_name, sender_id=sender_id, nickname=nickname)
 
