@@ -49,13 +49,13 @@
                     'Content-Type': 'application/json'
                 }
             }).then(response => response.json())
-            .then(json => {
-                let data = json.id;
-                roomId = JSON.stringify(data);
+            .then((json) => {
+                roomId = json.id;
+                window.location.href = `http://${window.location.host}/api/game/room/${roomId}/`;
+
             }).catch(error =>
                 console.error('ERROR:', error));
 
-            window.location.pathname = `api/game/room/${roomId}`;
         };
 
     </script>

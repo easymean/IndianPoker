@@ -29,10 +29,13 @@
                     'Content-Type': 'application/json'
                 }
             }).then(res => res.json())
-            .then(response => console.log('SUCCESS:', JSON.stringify(response)))
+            .then((response) =>{
+                console.log('SUCCESS:', JSON.stringify(response));
+                window.location.href = `http://${window.location.host}/api/game/choice/`;
+            })
             .catch(error => console.error('ERROR:', error));
 
-            window.location.pathname = 'api/game/choice/'
+
         };
 
     </script>
