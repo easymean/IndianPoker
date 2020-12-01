@@ -48,6 +48,14 @@ class GameInfoConsumer(AsyncWebsocketConsumer):
                 }
         )
 
+    async def send_message(self, message, cli_msg_type):
+        await self.send(
+            text_data=json.dumps({
+                'message': message,
+                'type': cli_msg_type
+            })
+        )
+
     # receive message from room group
     async def enter_message(self, event):
         sender_id = event['sender_id']
@@ -56,9 +64,7 @@ class GameInfoConsumer(AsyncWebsocketConsumer):
         info_message = EnterMessage(room_id=self.room_name, sender_id=sender_id, nickname=nickname)
 
         # send message to websocket
-        await self.send(text_data=json.dumps({
-            'message': info_message.message
-        }))
+        await self.send_message(info_message, 'room')
 
     async def exit_message(self, event):
         sender_id = event['sender_id']
@@ -70,9 +76,7 @@ class GameInfoConsumer(AsyncWebsocketConsumer):
         exit_room(self.room_name, sender_id)
 
         # send message to websocket
-        await self.send(text_data=json.dumps({
-            'message': info_message.message
-        }))
+        await self.send_message(info_message, 'room')
 
     async def ready_message(self, event):
         sender_id = event['sender_id']
@@ -82,9 +86,7 @@ class GameInfoConsumer(AsyncWebsocketConsumer):
 
         get_ready(user_id=sender_id)
 
-        await self.send(text_data=json.dumps({
-            'message': info_message.message
-        }))
+        await self.send_message(info_message, 'game')
 
     async def wait_message(self, event):
         sender_id = event['sender_id']
@@ -94,7 +96,5 @@ class GameInfoConsumer(AsyncWebsocketConsumer):
 
         cancel_ready(user_id=sender_id)
 
-        await self.send(text_data=json.dumps({
-            'message': info_message.message
-        }))
+        await self.send_message(info_message, 'game')
 
