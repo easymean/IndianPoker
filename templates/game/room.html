@@ -58,21 +58,20 @@
         document.querySelector('#ready-message-submit').onclick = (e) => {
 
             if(isReadyToggled == false){
-                isReadyToggled = true;
+
                 var msg = {
                     type : 'READY',
                     sender_id : userId
                 };
                 ws.send(JSON.stringify(msg));
-
             }else {
-                isReadyToggled = false;
                 var msg = {
                     type : 'WAIT',
                     sender_id : userId
                 };
                 ws.send(JSON.stringify(msg));
             }
+             isReadyToggled = !isReadyToggled;
 
         };
 
