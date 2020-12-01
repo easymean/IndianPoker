@@ -4,98 +4,175 @@ from utils.redis_client import r
 from enum import Enum
 
 
+class UserState(int, Enum):
+    WAIT = 0
+    READY = 1
+
+
 class RoomState(int, Enum):
-    EMPTY = 1
-    READY = 2
-    START = 3
+    READY = 1
+    START = 2
 
 
 class MessageType(int, Enum):
     ENTER = 1
-    QUIT = 2
+    EXIT = 2
     CHAT = 3
+    READY = 4
+    WAIT = 5
+
+
+class GameState(int, Enum):
+    pass
 
 
 class User:
     def __init__(self, nickname):
         self.id = uuid.uuid4()
         self.nickname = nickname
-        self.ready_state = 0
+        self.ready_state = UserState.WAIT
         self.score = 10
 
     def __str__(self):
         return str(self.id)
 
     def make_user(self):
-        hash_name = str(self.id)
-        key_value = {
+        hash_key = str(self.id)
+        field_value = {
             "nickname": self.nickname,
             "ready_state": self.ready_state,
             "score": self.score
         }
-        r.hmset(hash_name, key_value)
-        r.rpush("user", hash_name);
+        r.hmset(hash_key, field_value)
+        r.rpush("user", hash_key);
+
+
+def delete_user(user_id):
+    r.hdel(user_id)
+
+
+def get_nickname(user_id):
+    nickname = r.hget(user_id, "nickname")
+    return nickname.decode("UTF-8")
+
+
+def get_ready(user_id):
+    r.hset(user_id, "ready_state", UserState.READY)
+
+
+def cancel_ready(user_id):
+    r.hset(user_id, "ready_state", UserState.WAIT)
 
 
 class Room:
     def __init__(self, name):
         self.id = uuid.uuid4()
         self.name = name
-        self.state = RoomState.EMPTY
-        self.user_count = 0
+        self.state = RoomState.READY
         self.round = 0
+        self.users = ""
 
     def __str__(self):
         return str(self.id)
 
     def make_room(self):
-        hash_name = str(self.id)
-        key_value = {
+        hash_key = str(self.id)
+        field_value = {
             "name": self.name,
             "state": self.state,
-            "user_count":self.user_count,
             "round": self.round,
+            "users": self.users
         }
-        r.hmset(hash_name, key_value);
-        r.rpush("room", hash_name);
-
-#Room
-def increase_user_count(room_id):
-    r.hincrby(room_id, "user_count", 1)
-
-
-def decrease_user_count(room_id):
-    r.hdecrby(room_id, "user_count", 1)
-
-
-def user_enter_room(room_id, user_id):
-    hash_key = user_id
-    field_value = {
-            "type": MessageType.ENTER,
-            "room_id" : room_id
-    }
-    r.hmset(hash_key, field_value)
-    increase_user_count(room_id)
+        r.hmset(hash_key, field_value);
+        r.rpush("room", hash_key);
 
 
 def find_room(room_id):
     return r.hvals(room_id)
 
 
-class InfoMessage:
-    def __init__(self, room_id, sender_id):
-        self.type = 0
+def delete_room(room_id):
+    r.hdel(room_id)
+
+
+def get_user_list(room_id):
+    return r.hget(room_id, "users")
+
+
+def get_user_count(room_id):
+    user_str = str(r.hget(room_id, "users"))
+    if user_str == "":
+        return 0
+
+    return user_str.count(',') + 1
+
+
+def enter_room(room_id, user_id):
+
+    if get_user_count(room_id) == 2:
+        print("방이 가득 차서 입장 불가능합니다.")
+        return -1
+    else:
+        user_str = str(get_user_list(room_id))
+        str_list = [user_str, user_id]
+        if len(user_str) == 0:
+            user_str = user_id
+        else:
+            user_str = ','.join(str_list)
+        r.hset(room_id, "users", user_str)
+        return 1
+
+
+def exit_room(room_id, user_id):
+    delete_user(user_id)
+    prev_user_str = str(get_user_list(room_id))
+    user_str = ""
+    for user in prev_user_str.split(','):
+        if user != user_id:
+            user_str = user
+
+    # 남아 있는 유저가 없으면 방을 삭제한다
+    if len(user_str) == 0:
+        delete_room(room_id)
+    else:
+        r.hset(room_id, "users", user_str)
+
+
+class ClientMessage:
+    type = 0
+    room_id = ""
+    sender_id = ""
+    nickname= ""
+    message = ""
+
+    def __init__(self, room_id, sender_id, nickname=nickname):
         self.room_id = room_id
         self.sender_id = sender_id
-        self.message = ""
+        self.nickname = nickname
 
-    def enter_room(self):
+
+class EnterMessage(ClientMessage):
+    def __init__(self, room_id, sender_id, nickname):
+        super().__init__(room_id, sender_id, nickname)
         self.type = MessageType.ENTER
-        self.message = f"{self.sender_id} has entered the room {self.room_id}"
-        hash_map = {
-            "type": self.type,
-            "sender_id": self.sender_id,
-            "room_id" : self.room_id
-        }
-        r.rpush("user_room_list", hash_map)
-        self.increase_user_count()
+        self.message = f'{self.nickname}님이 입장하셨습니다.'
+
+
+class ExitMessage(ClientMessage):
+    def __init__(self, room_id, sender_id, nickname):
+        super().__init__(room_id, sender_id, nickname)
+        self.type = MessageType.EXIT
+        self.message = f'{self.nickname}님이 퇴장하셨습니다.'
+
+
+class ReadyMessage(ClientMessage):
+    def __init__(self, room_id, sender_id, nickname):
+        super().__init__(room_id, sender_id, nickname)
+        self.type = MessageType.READY
+        self.message = f'{self.nickname}님 레디를 눌렀습니다'
+        
+class WaitMessage(ClientMessage):
+    def __init__(self, room_id, sender_id, nickname):
+        super().__init__(room_id, sender_id, nickname)
+        self.type = MessageType.WAIT
+        self.message = f'{self.nickname}님 레디를 취소했습니다'

@@ -8,65 +8,93 @@
     <textarea id="chat-log" cols="100" rows="20"></textarea><br>
     <input id="chat-message-input" type="text" size="100"><br>
     <input id="chat-message-submit" type="button" value="Send">
-    {{ room_id|json_script:"room-id" }}
-    {{ user_id|json_script:"user-id" }}
-    <script>
-        const roomName = JSON.parse(document.getElementById('room-id').textContent);
-        const userName = JSON.parse(document.getElementById('user-id').textContent);
 
-        const gameInfoSocket = new WebSocket(
-            `ws://${window.location.host}/ws/game/room/${roomName}/`
+    <input id="exit-message-submit" type="button" value="Exit">
+
+    <input id="ready-message-submit" type="button" value="Ready">
+
+    <script type="text/javascript">
+        const roomId = "{{ room_id }}";
+        const cookieName = 'user_id';
+
+        var isReadyToggled;
+
+
+        let getCookie = (name) => {
+            let cookieArr = document.cookie.split(';');
+
+            for(let i=0; i<cookieArr.length; i++){
+                let cookie = cookieArr[i];
+                console.log(cookie);
+                while(cookie.charAt(0)==' '){
+                    cookie = cookie.substring(1);
+                }
+                let cookieVal = cookie.split('=');
+                if(cookieVal[0] == name){
+                    console.log(cookieVal);
+                    return cookieVal[1];
+                }
+            }
+        };
+        const userId = getCookie(cookieName);
+
+        let ws = new WebSocket(
+            `ws://${window.location.host}/ws/game/room/${roomId}/`
         );
 
-        gameInfoSocket.send(JSON.stringify({
-                'type' : 'ENTER',
-                'sender_id': userName
-        }));
-
-        gameInfoSocket.onmessage= function(e){
-            console.log(e)
-            const data = JSON.parse(e.data);
-            document.querySelector('#chat-log').value += (data.message['message'] + '/n');
-        }
-
-        gameInfoSocket.onclose = function(e){
-            console.error('Game Info socket closed unexpectedly');
+        ws.onopen = (e) => {
+            console.log('WebSocket opened');
+            ws.send(
+                  JSON.stringify({
+                    'type' : 'ENTER',
+                    'sender_id': userId
+                  })
+            );
+            isReadyToggled = false;
         };
 
 
 
-        // const chatSocket = new WebSocket(
-        //     'ws://'
-        //     + window.location.host
-        //     + '/ws/game/'
-        //     + roomName
-        //     + '/'
-        // );
-        //
-        // chatSocket.onmessage = function(e) {
-        //     const data = JSON.parse(e.data);
-        //     document.querySelector('#chat-log').value += (data.message + '\n');
-        // };
-        //
-        // chatSocket.onclose = function(e) {
-        //     console.error('Game socket closed unexpectedly');
-        // };
-        //
-        // document.querySelector('#chat-message-input').focus();
-        // document.querySelector('#chat-message-input').onkeyup = function(e) {
-        //     if (e.keyCode === 13) {  // enter, return
-        //         document.querySelector('#chat-message-submit').click();
-        //     }
-        // };
-        //
-        // document.querySelector('#chat-message-submit').onclick = function(e) {
-        //     const messageInputDom = document.querySelector('#chat-message-input');
-        //     const message = messageInputDom.value;
-        //     chatSocket.send(JSON.stringify({
-        //         'message': message
-        //     }));
-        //     messageInputDom.value = '';
-        // };
+        document.querySelector('#ready-message-submit').onclick = (e) => {
+
+            if(isReadyToggled == false){
+
+                var msg = {
+                    type : 'READY',
+                    sender_id : userId
+                };
+                ws.send(JSON.stringify(msg));
+            }else {
+                var msg = {
+                    type : 'WAIT',
+                    sender_id : userId
+                };
+                ws.send(JSON.stringify(msg));
+            }
+             isReadyToggled = !isReadyToggled;
+
+        };
+
+        document.querySelector('#exit-message-submit').onclick = (e) => {
+
+            var msg = {
+                    type: 'EXIT',
+                    sender_id : userId
+                };
+            ws.send(JSON.stringify(msg));
+
+        };
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            document.querySelector('#chat-log').value += (data.message + '\n');
+        };
+
+        ws.onclose = (e) => {
+            console.error('WebSocket closed unexpectedly');
+        };
+
+
     </script>
 </body>
 </html>
