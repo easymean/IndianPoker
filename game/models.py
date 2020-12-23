@@ -241,27 +241,33 @@ class GameMessage:
         self.result["my_card"] = my_card
         self.result["opponent_card"] = opponent_card
 
-    def enter_message(self, nickname):
+    def send_enter_message(self, nickname):
         self.type = MessageType.ENTER
         self.message = f'{nickname}님이 입장하셨습니다.'
 
-    def exit_message(self, nickname):
+    def send_exit_message(self, nickname, room_id, user_id):
         self.type = MessageType.EXIT
         self.message = f'{nickname}님이 퇴장하셨습니다.'
 
-    def ready_message(self, nickname):
+        # delete user from database
+        exit_room(room_id, user_id)
+
+    def send_ready_message(self, nickname, user_id):
         self.type = MessageType.READY
         self.message = f'{nickname}님이 레디를 눌렀습니다.'
+        get_ready(user_id)
 
-    def wait_message(self, nickname):
+    def send_wait_message(self, nickname, user_id):
         self.type = MessageType.WAIT
         self.message = f'{nickname}님이 레디를 취소했습니다.'
+        cancel_ready(user_id)
 
-    def start_message(self):
+    def send_start_message(self):
         self.type = MessageType.START
         self.message = '5초 후에 게임이 시작됩니다.'
 
     def start_game(self, room_id, me, my_nickname):
+        start_game(room_id)
         self.this_turn = me
 
         user_list = get_user_list(room_id)

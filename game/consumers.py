@@ -2,8 +2,7 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 # I/O가 왼료된 경우에만 await 함수부분이 실행됨
-from game.models import get_nickname, exit_room, get_ready, cancel_ready, \
-    start_game, are_both_users_ready, GameMessage
+from game.models import get_nickname, are_both_users_ready, GameMessage
 
 
 class GameInfoConsumer(AsyncWebsocketConsumer):
@@ -62,7 +61,7 @@ class GameInfoConsumer(AsyncWebsocketConsumer):
         nickname = event['nickname']
 
         msg_obj = GameMessage()
-        msg_obj.enter_message(nickname=nickname)
+        msg_obj.send_enter_message(nickname=nickname)
         # send message to websocket
         await self.send_message(msg_obj.to_json(), msg_obj.type)
 
@@ -71,10 +70,7 @@ class GameInfoConsumer(AsyncWebsocketConsumer):
         nickname = event['nickname']
 
         msg_obj = GameMessage()
-        msg_obj.exit_message(nickname)
-
-        # delete user from database
-        exit_room(self.room_name, sender_id)
+        msg_obj.send_exit_message(nickname, self.room_name, sender_id)
 
         # send message to websocket
         await self.send_message(msg_obj.to_json(), msg_obj.type)
@@ -84,18 +80,16 @@ class GameInfoConsumer(AsyncWebsocketConsumer):
         nickname = event['nickname']
 
         msg_obj = GameMessage()
-        msg_obj.ready_message(nickname=nickname)
-        get_ready(user_id=sender_id)
+        msg_obj.send_ready_message(nickname=nickname, user_id=sender_id)
         await self.send_message(msg_obj.to_json(), msg_obj.type)
 
         if are_both_users_ready(self.room_name):
-            msg_obj.start_message(nickname)
+            msg_obj.send_start_message()
             await self.send_message(msg_obj.to_json(), msg_obj.type)
 
     async def start_message(self, event):
         sender_id = event['sender_id']
         nickname = event['nickname']
-        start_game(self.room_name)
 
         msg_obj = GameMessage()
         msg_obj.start_game(room_id=self.room_name, me=sender_id, my_nickname=nickname)
@@ -106,8 +100,7 @@ class GameInfoConsumer(AsyncWebsocketConsumer):
         nickname = event['nickname']
 
         msg_obj = GameMessage()
-        msg_obj.wait_message(nickname)
-        cancel_ready(user_id=sender_id)
+        msg_obj.send_wait_message(nickname, sender_id)
 
         await self.send_message(msg_obj.to_json(), msg_obj.type)
 
