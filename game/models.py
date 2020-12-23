@@ -26,12 +26,26 @@ class GameState(int, Enum):
     pass
 
 
+# 리스트를 string으로 파싱
+def parse_list_into_str(given_list):
+    return ','.join(given_list)
+
+
+def parse_str_into_list(given_str):
+    parsed_list = []
+    for ele in given_str.split(','):
+        parsed_list.append(ele)
+
+    return parsed_list
+
+
 class User:
     def __init__(self, nickname):
         self.id = uuid.uuid4()
         self.nickname = nickname
         self.ready_state = UserState.WAIT
         self.score = 10
+        self.cards = ""
 
     def __str__(self):
         return str(self.id)
@@ -95,46 +109,63 @@ def delete_room(room_id):
     r.hdel(room_id)
 
 
+# 방에 있는 유저들이 list로 리턴
 def get_user_list(room_id):
-    return r.hget(room_id, "users")
+    users_str = str(r.hget(room_id, "users"))
+    return parse_str_into_list(users_str)
 
 
 def get_user_count(room_id):
-    user_str = str(r.hget(room_id, "users"))
-    if user_str == "":
-        return 0
+    user_list = get_user_list(room_id)
+    return len(user_list)
 
-    return user_str.count(',') + 1
+
+def check_room_state(room_id):
+    return r.hget(room_id, "state")
+
+
+def are_both_users_ready(room_id):
+    user_list = get_user_list(room_id)
+    for user in user_list:
+        if check_user_state(user) != UserState.READY:
+            return False
+
+    return True
+
+
+def start_game(room_id):
+    if check_room_state(room_id) == RoomState.START:
+        raise InvalidMethod("이미 시작 상태입니다.")
+    r.hset(room_id, "state", RoomState.START)
+
+    user_list = get_user_list(room_id)
+    give_cards(user_list[0], user_list[1])
 
 
 def enter_room(room_id, user_id):
 
     if get_user_count(room_id) == 2:
-        print("방이 가득 차서 입장 불가능합니다.")
-        return -1
-    else:
-        user_str = str(get_user_list(room_id))
-        str_list = [user_str, user_id]
-        if len(user_str) == 0:
-            user_str = user_id
-        else:
-            user_str = ','.join(str_list)
-        r.hset(room_id, "users", user_str)
-        return 1
+        raise InvalidMethod("방이 가득 찼습니다.")
+
+    user_list = get_user_list(room_id)
+    user_list.append(user_id)
+
+    user_str = parse_list_into_str(user_list)
+
+    r.hset(room_id, "users", user_str)
 
 
 def exit_room(room_id, user_id):
     delete_user(user_id)
-    prev_user_str = str(get_user_list(room_id))
-    user_str = ""
-    for user in prev_user_str.split(','):
-        if user != user_id:
-            user_str = user
+
+    user_list = get_user_list(room_id)
+    user_list.remove(user_id)
 
     # 남아 있는 유저가 없으면 방을 삭제한다
-    if len(user_str) == 0:
+    if len(user_list) == 0:
         delete_room(room_id)
     else:
+        user_str = parse_list_into_str(user_list)
         r.hset(room_id, "users", user_str)
 
 
