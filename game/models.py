@@ -138,41 +138,78 @@ def exit_room(room_id, user_id):
         r.hset(room_id, "users", user_str)
 
 
-class ClientMessage:
+class GameMessage:
     type = 0
-    room_id = ""
-    sender_id = ""
-    nickname= ""
-    message = ""
+    opponent_card = 0
+    opponent_bet = 1
+    this_turn = ""
+    result = {}
+    round_status = -1
+    msg = ""
 
-    def __init__(self, room_id, sender_id, nickname=nickname):
-        self.room_id = room_id
-        self.sender_id = sender_id
-        self.nickname = nickname
+    def __init__(self):
+        self.type = MessageType.GAME
+        self.opponent_card = 0
+        self.opponent_bet = 1
+        self.this_turn = ""
+        self.result = {
+            "winner": "",
+            "my_card": 0,
+            "opponent_card": 0,
+        }
+        self.round_status = -1
+        self.message = ""
 
+    def to_json(self):
+        return json.dumps(self, default=lambda o: o.__dict__,
+                          sort_keys=True, indent=4, ensure_ascii=False)
 
-class EnterMessage(ClientMessage):
-    def __init__(self, room_id, sender_id, nickname):
-        super().__init__(room_id, sender_id, nickname)
+    def set_result(self, winner, my_card, opponent_card):
+        self.result["winner"] = winner
+        self.result["my_card"] = my_card
+        self.result["opponent_card"] = opponent_card
+
+    def enter_message(self, nickname):
         self.type = MessageType.ENTER
-        self.message = f'{self.nickname}님이 입장하셨습니다.'
+        self.message = f'{nickname}님이 입장하셨습니다.'
 
-
-class ExitMessage(ClientMessage):
-    def __init__(self, room_id, sender_id, nickname):
-        super().__init__(room_id, sender_id, nickname)
+    def exit_message(self, nickname):
         self.type = MessageType.EXIT
-        self.message = f'{self.nickname}님이 퇴장하셨습니다.'
+        self.message = f'{nickname}님이 퇴장하셨습니다.'
 
-
-class ReadyMessage(ClientMessage):
-    def __init__(self, room_id, sender_id, nickname):
-        super().__init__(room_id, sender_id, nickname)
+    def ready_message(self, nickname):
         self.type = MessageType.READY
-        self.message = f'{self.nickname}님 레디를 눌렀습니다'
-        
-class WaitMessage(ClientMessage):
-    def __init__(self, room_id, sender_id, nickname):
-        super().__init__(room_id, sender_id, nickname)
+        self.message = f'{nickname}님이 레디를 눌렀습니다.'
+
+    def wait_message(self, nickname):
         self.type = MessageType.WAIT
-        self.message = f'{self.nickname}님 레디를 취소했습니다'
+        self.message = f'{nickname}님이 레디를 취소했습니다.'
+
+    def start_message(self):
+        self.type = MessageType.START
+        self.message = '5초 후에 게임이 시작됩니다.'
+
+    def start_game(self, room_id, me, my_nickname):
+        self.this_turn = me
+
+        user_list = get_user_list(room_id)
+        opponent = user_list[0] if user_list[1] == me else user_list[1]
+
+        opponent_cards_list = get_cards_list(opponent)
+        self.opponent_card = opponent_cards_list[0]
+        self.message = f'{my_nickname}님 차례입니다.'
+
+    def check(self, bet):
+        pass
+
+    def bet(self):
+        pass
+
+    def call_bet(self):
+        pass
+
+    def raise_bet(slef):
+        pass
+
+    def die(self):
+        pass
