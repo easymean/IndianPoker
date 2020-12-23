@@ -55,10 +55,10 @@ class User:
         field_value = {
             "nickname": self.nickname,
             "ready_state": self.ready_state,
-            "score": self.score
+            "score": self.score,
         }
         r.hmset(hash_key, field_value)
-        r.rpush("user", hash_key);
+        r.rpush("user", hash_key)
 
 
 def delete_user(user_id):
@@ -97,8 +97,8 @@ class Room:
             "round": self.round,
             "users": self.users
         }
-        r.hmset(hash_key, field_value);
-        r.rpush("room", hash_key);
+        r.hmset(hash_key, field_value)
+        r.rpush("room", hash_key)
 
 
 def find_room(room_id):
