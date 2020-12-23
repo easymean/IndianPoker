@@ -61,8 +61,16 @@ class User:
         r.rpush("user", hash_key)
 
 
+def find_user(user_id):
+    return r.hvals(user_id)
+
+
 def delete_user(user_id):
     r.hdel(user_id)
+
+
+def check_user_state(user_id):
+    return r.hget(user_id, "ready_state")
 
 
 def get_nickname(user_id):
