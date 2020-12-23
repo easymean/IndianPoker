@@ -1,5 +1,6 @@
-import uuid
+import uuid, random, json
 
+from utils.exceptions import InvalidMethod
 from utils.redis_client import r
 from enum import Enum
 
@@ -15,11 +16,16 @@ class RoomState(int, Enum):
 
 
 class MessageType(int, Enum):
+    # THIS IS ABOUT CLIENT ACTION
     ENTER = 1
     EXIT = 2
     CHAT = 3
+    # THIS IS ABOUT CLIENT STATE
     READY = 4
     WAIT = 5
+    # THIS IS ABOUT GAME STATE
+    START = 6
+    GAME = 7
 
 
 class GameState(int, Enum):
