@@ -26,11 +26,11 @@
             for(let i=0; i<cookieArr.length; i++){
                 let cookie = cookieArr[i];
                 console.log(cookie);
-                while(cookie.charAt(0)==' '){
+                while(cookie.charAt(0)===' '){
                     cookie = cookie.substring(1);
                 }
                 let cookieVal = cookie.split('=');
-                if(cookieVal[0] == name){
+                if(cookieVal[0] === name){
                     console.log(cookieVal);
                     return cookieVal[1];
                 }
@@ -46,8 +46,9 @@
             console.log('WebSocket opened');
             ws.send(
                   JSON.stringify({
-                    'type' : 'ENTER',
-                    'sender_id': userId
+                      'type': 'ENTER',
+                      'sender_id' : userId,
+                      'bet': 0
                   })
             );
             isReadyToggled = false;
@@ -57,17 +58,19 @@
 
         document.querySelector('#ready-message-submit').onclick = (e) => {
 
-            if(isReadyToggled == false){
-
-                var msg = {
-                    type : 'READY',
-                    sender_id : userId
+            let msg;
+            if(isReadyToggled === false){
+                msg = {
+                    type: 'READY',
+                    sender_id: userId,
+                    bet : 0
                 };
                 ws.send(JSON.stringify(msg));
             }else {
-                var msg = {
+                msg = {
                     type : 'WAIT',
-                    sender_id : userId
+                    sender_id : userId,
+                    bet :0,
                 };
                 ws.send(JSON.stringify(msg));
             }
@@ -77,17 +80,29 @@
 
         document.querySelector('#exit-message-submit').onclick = (e) => {
 
-            var msg = {
-                    type: 'EXIT',
-                    sender_id : userId
-                };
+            const msg = {
+                type: 'EXIT',
+                sender_id: userId
+            };
             ws.send(JSON.stringify(msg));
 
         };
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            document.querySelector('#chat-log').value += (data.message + '\n');
+            const msgObj = JSON.parse(data.message);
+
+            if(data.type === 6){
+                var msg = {
+                    type: 'START',
+                    sender_id: " "
+                };
+                ws.send(JSON.stringify(msg));
+
+            }
+            console.log(msgObj.message);
+            document.querySelector('#chat-log').value += (msgObj.message + '\n');
+
         };
 
         ws.onclose = (e) => {
