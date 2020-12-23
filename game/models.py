@@ -78,6 +78,33 @@ def cancel_ready(user_id):
     r.hset(user_id, "ready_state", UserState.WAIT)
 
 
+def give_cards(user1, user2):
+    list1 = []
+    list2 = []
+    ran_num = random.randint(1, 10)
+
+    for i in range(10):
+        while ran_num in list1:
+            ran_num = random.randint(1,10)
+        list1.append(ran_num)
+
+    for i in range(20):
+        while ran_num in list2:
+            ran_num = random.randint(1,10)
+        list2.append(ran_num)
+
+    list1_str = parse_list_into_str(list1)
+    list2_str = parse_list_into_str(list2)
+
+    r.hset(user1, "cards", list1_str)
+    r.hset(user2, "cards", list2_str)
+
+
+def get_cards_list(user_id):
+    cards_str = r.hget(user_id, "cards")
+    return parse_str_into_list(cards_str)
+
+
 class Room:
     def __init__(self, name):
         self.id = uuid.uuid4()
