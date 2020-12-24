@@ -15,17 +15,16 @@ class RoomState(int, Enum):
     START = 2
 
 
-class MessageType(int, Enum):
+class ClientMessageType(str, Enum):
     # THIS IS ABOUT CLIENT ACTION
-    ENTER = 1
-    EXIT = 2
-    CHAT = 3
+    ENTER = "ENTER"
+    EXIT = "EXIT"
+    CHAT = "CHAT"
     # THIS IS ABOUT CLIENT STATE
-    READY = 4
-    WAIT = 5
-    # THIS IS ABOUT GAME STATE
-    START = 6
-    GAME = 7
+    READY = "READY"
+    WAIT = "WAIT"    # THIS IS ABOUT GAME STATE
+    START = "START"
+    GAME = "GAME"
 
 
 class GameState(int, Enum):
