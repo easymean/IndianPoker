@@ -13,6 +13,12 @@
 
     <input id="ready-message-submit" type="button" value="Ready">
 
+    <input id="check-message-submit" type="button" value="Check">
+    <input id="bet-message-submit" type="button" value="Bet">
+    <input id="call-message-submit" type="button" value="Call">
+    <input id="raise-message-submit" type="button" value="Raise">
+    <input id="die-message-submit" type="button" value="Die">
+
     <script type="text/javascript">
         const roomId = "{{ room_id }}";
         const cookieName = 'user_id';
@@ -26,11 +32,11 @@
             for(let i=0; i<cookieArr.length; i++){
                 let cookie = cookieArr[i];
                 console.log(cookie);
-                while(cookie.charAt(0)==' '){
+                while(cookie.charAt(0)===' '){
                     cookie = cookie.substring(1);
                 }
                 let cookieVal = cookie.split('=');
-                if(cookieVal[0] == name){
+                if(cookieVal[0] === name){
                     console.log(cookieVal);
                     return cookieVal[1];
                 }
@@ -44,11 +50,12 @@
 
         ws.onopen = (e) => {
             console.log('WebSocket opened');
+             let msg = {
+                    type : 'ENTER',
+                 sender_id: userId,
+            };
             ws.send(
-                  JSON.stringify({
-                    'type' : 'ENTER',
-                    'sender_id': userId
-                  })
+                  JSON.stringify(msg)
             );
             isReadyToggled = false;
         };
@@ -57,17 +64,17 @@
 
         document.querySelector('#ready-message-submit').onclick = (e) => {
 
-            if(isReadyToggled == false){
-
-                var msg = {
-                    type : 'READY',
-                    sender_id : userId
+            let msg;
+            if(isReadyToggled === false){
+                msg = {
+                    type: 'READY',
+                    sender_id: userId,
                 };
                 ws.send(JSON.stringify(msg));
             }else {
-                var msg = {
-                    type : 'WAIT',
-                    sender_id : userId
+                msg = {
+                    type: 'WAIT',
+                    sender_id: userId,
                 };
                 ws.send(JSON.stringify(msg));
             }
@@ -76,18 +83,39 @@
         };
 
         document.querySelector('#exit-message-submit').onclick = (e) => {
-
-            var msg = {
-                    type: 'EXIT',
-                    sender_id : userId
-                };
+            let msg = {
+                type: 'EXIT',
+                sender_id: userId,
+            };
             ws.send(JSON.stringify(msg));
 
         };
 
+        document.querySelector('#check-message-submit').onclick = (e) => {
+            let msg = {
+                    type: 'CHECK',
+                    sender_id: userId,
+                    bet: 1
+                };
+            ws.send(JSON.stringify(msg));
+        }
+
         ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            document.querySelector('#chat-log').value += (data.message + '\n');
+            let data = JSON.parse(event.data);
+            let msgObj = JSON.parse(data.message);
+
+            let msg;
+            if(data.type === 'START'){
+                 msg = {
+                     type: 'START',
+                     sender_id: userId,
+                };
+                ws.send(JSON.stringify(msg));
+
+            }
+            console.log(msgObj.message);
+            document.querySelector('#chat-log').value += (msgObj.message + '\n');
+
         };
 
         ws.onclose = (e) => {

@@ -6,7 +6,7 @@
 </head>
 <body>
     기존에 있는 방 입장하기<br>
-    <input id="room-code-input" type="text" size="100" placeholder="방코드를 입력해주세요"><br>
+    room code: <input id="room-code-input" type="text" size="100" placeholder="방코드를 입력해주세요"><br>
     <input id="enter-room-submit" type="button" value="Enter">
 
     <br>
@@ -25,7 +25,22 @@
 
         document.querySelector('#enter-room-submit').onclick = function(e) {
             var roomCode = document.querySelector('#room-code-input').value;
-            window.location.pathname = `api/game/room/${roomCode}/`;
+            window.location.href = `http://${window.location.host}/api/game/room/${roomCode}/`;
+            // var enterRoomUrl = `http://${window.location.host}/api/game/room/${roomCode}/`;
+            //
+            // fetch(enterRoomUrl, {
+            //     method: 'GET',
+            //     headers: {
+            //         'Content-Type': 'application/json'
+            //     }
+            // }).then(res => res.json())
+            // .then ((json) => {
+            //     var roomId = json.room_id;
+            //    window.location.href = `http://${window.location.host}/api/game/room/${roomId}/`;
+            // }).catch(error =>
+            //     console.error('ERROR: ', error));
+
+            //window.location.pathname = `api/game/room/${roomCode}/`;
         };
 
         document.querySelector('#room-name-input').focus();
