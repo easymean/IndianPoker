@@ -247,8 +247,21 @@ class ClientMessage:
     def start_game(self, room_id, me):
         self.this_turn = me
 
-        user_list = get_user_list(room_id)
-        opponent = user_list[0] if user_list[1] == me else user_list[1]
+        opponent = get_opponent(room_id, me)
 
         opponent_cards_list = get_cards_list(opponent)
         self.opponent_card = opponent_cards_list[0]
+
+
+def get_opponent(room_id, me):
+    user_list = get_user_list(room_id)
+    return user_list[0] if user_list[1] == me else user_list[1]
+
+
+def check_betting(room_id, user_id, bet):
+    r.zincrby(room_id, bet, user_id)
+
+
+def raise_betting(room_id, user_id, increment):
+    increased = r.zincrby(room_id, increment, user_id)
+    return increased
