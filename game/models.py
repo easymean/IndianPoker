@@ -210,7 +210,7 @@ def exit_room(room_id, user_id):
         r.hset(room_id, "users", user_str)
 
 
-class GameMessage:
+class ClientMessage:
     type = 0
     opponent_card = 0
     opponent_bet = 1
@@ -219,8 +219,8 @@ class GameMessage:
     round_status = -1
     msg = ""
 
-    def __init__(self):
-        self.type = MessageType.GAME
+    def __init__(self, message_type, message):
+        self.type = message_type
         self.opponent_card = 0
         self.opponent_bet = 1
         self.this_turn = ""
@@ -230,7 +230,7 @@ class GameMessage:
             "opponent_card": 0,
         }
         self.round_status = -1
-        self.message = ""
+        self.message = message
 
     def to_json(self):
         return json.dumps(self, default=lambda o: o.__dict__,
@@ -241,33 +241,7 @@ class GameMessage:
         self.result["my_card"] = my_card
         self.result["opponent_card"] = opponent_card
 
-    def send_enter_message(self, nickname):
-        self.type = MessageType.ENTER
-        self.message = f'{nickname}님이 입장하셨습니다.'
-
-    def send_exit_message(self, nickname, room_id, user_id):
-        self.type = MessageType.EXIT
-        self.message = f'{nickname}님이 퇴장하셨습니다.'
-
-        # delete user from database
-        exit_room(room_id, user_id)
-
-    def send_ready_message(self, nickname, user_id):
-        self.type = MessageType.READY
-        self.message = f'{nickname}님이 레디를 눌렀습니다.'
-        get_ready(user_id)
-
-    def send_wait_message(self, nickname, user_id):
-        self.type = MessageType.WAIT
-        self.message = f'{nickname}님이 레디를 취소했습니다.'
-        cancel_ready(user_id)
-
-    def send_start_message(self):
-        self.type = MessageType.START
-        self.message = '5초 후에 게임이 시작됩니다.'
-
-    def start_game(self, room_id, me, my_nickname):
-        start_game(room_id)
+    def start_game(self, room_id, me):
         self.this_turn = me
 
         user_list = get_user_list(room_id)
@@ -275,19 +249,3 @@ class GameMessage:
 
         opponent_cards_list = get_cards_list(opponent)
         self.opponent_card = opponent_cards_list[0]
-        self.message = f'{my_nickname}님 차례입니다.'
-
-    def check(self, bet):
-        pass
-
-    def bet(self):
-        pass
-
-    def call_bet(self):
-        pass
-
-    def raise_bet(slef):
-        pass
-
-    def die(self):
-        pass
