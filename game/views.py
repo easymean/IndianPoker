@@ -21,6 +21,8 @@ def select_room(request):
 
 @api_view(['GET'])
 def enter_room(request, room_id):
+    user_id = request.COOKIES.get('user_id')
+    user_enter_room(user_id=user_id, room_id=room_id) #에러 처리 확인
     return render(request, 'game/room.html', {
         'room_id': room_id,
     })
@@ -42,9 +44,8 @@ class CreateRoom(generics.CreateAPIView):
 
     def create(self, request, *args, **kwargs):
         response = super(CreateRoom, self).create(request, *args, **kwargs)
-        data = response.data
-        room_id = data["id"]
-        user_id = request.COOKIES.get('user_id')
-        user_enter_room(user_id=user_id, room_id=room_id)
         return response
+
+
+
 
