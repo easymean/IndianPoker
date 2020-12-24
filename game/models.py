@@ -178,6 +178,7 @@ def are_both_users_ready(room_id):
 def start_game(room_id):
     if check_room_state(room_id) == RoomState.START:
         raise InvalidMethod("이미 시작 상태입니다.")
+
     r.hset(room_id, "state", "START")
 
     user_list = get_user_list(room_id)

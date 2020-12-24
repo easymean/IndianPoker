@@ -85,6 +85,7 @@ class GameInfoConsumer(AsyncJsonWebsocketConsumer):
 
     async def send_room(self, message_type, message):
 
+
         # parse message choice
         lower_message_type = message_type.lower()
         parsed_message_choice = f'game.{lower_message_type}'
@@ -148,6 +149,7 @@ class GameInfoConsumer(AsyncJsonWebsocketConsumer):
         nickname = get_nickname(user_id)
         msg = f'{nickname}님 차례입니다. 베팅해주세요.'
         msg_obj = ClientMessage('GAME', msg)
+
         msg_obj.start_game(room_id=self.room_id, me=user_id)
 
         await self.send_message(msg_obj.to_json(), msg_obj.type)

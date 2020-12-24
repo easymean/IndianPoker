@@ -101,8 +101,8 @@
         }
 
         ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            const msgObj = JSON.parse(data.message);
+            let data = JSON.parse(event.data);
+            let msgObj = JSON.parse(data.message);
 
             let msg;
             if(data.type === 'START'){
