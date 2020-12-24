@@ -101,20 +101,20 @@ def give_cards(user1, user2):
             ran_num = random.randint(1,10)
         list1.append(ran_num)
 
-    for i in range(20):
+    for i in range(10):
         while ran_num in list2:
             ran_num = random.randint(1,10)
         list2.append(ran_num)
 
-    list1_str = parse_list_into_str(list1)
-    list2_str = parse_list_into_str(list2)
+    list1_str = parse_list_into_str(map(str, list1))
+    list2_str = parse_list_into_str(map(str, list2))
 
     r.hset(user1, "cards", list1_str)
     r.hset(user2, "cards", list2_str)
 
 
 def get_cards_list(user_id):
-    cards_str = r.hget(user_id, "cards")
+    cards_str = r.hget(user_id, "cards").decode()
     return parse_str_into_list(cards_str)
 
 
