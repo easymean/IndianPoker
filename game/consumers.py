@@ -162,17 +162,20 @@ class GameInfoConsumer(AsyncJsonWebsocketConsumer):
 
         await self.send_message(msg_obj.to_json(), msg_obj.type)
 
-    async def check_message(self, event):
-        sender_id = event['sender_id']
-        nickname = event['nickname']
+    async def game_check(self, event):
+        user_id = event['sender_id']
         bet = event['bet']
 
-        msg_obj = ClientMessage()
-        pass
+        check_betting(self.room_id, user_id, bet)
 
-    async def bet_message(self, event):
-        sender_id = event['sender_id']
-        nickname = event['nickname']
+        nickname = get_nickname(user_id)
+        msg = f'{nickname} 님이 check했습니다.'
+        msg_obj = ClientMessage('CHECK', msg)
+
+        await self.send_message(msg_obj.to_json(), msg_obj.type)
+
+    async def game_bet(self, event):
+        user_id = event['sender_id']
         bet = event['bet']
         pass
 
