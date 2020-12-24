@@ -75,7 +75,7 @@ def delete_user(user_id):
 
 
 def check_user_state(user_id):
-    return r.hget(user_id, "ready_state")
+    return r.hget(user_id, "ready_state").decode()
 
 
 def get_nickname(user_id):
@@ -135,10 +135,13 @@ class Room:
             "name": self.name,
             "state": self.state,
             "round": self.round,
-            "users": self.users
         }
         r.hmset(hash_key, field_value)
         r.rpush("room", hash_key)
+
+
+def get_group_name(room_id):
+    return f'game_{room_id}'
 
 
 def find_room(room_id):
@@ -151,7 +154,7 @@ def delete_room(room_id):
 
 # 방에 있는 유저들이 list로 리턴
 def get_user_list(room_id):
-    users_str = str(r.hget(room_id, "users"))
+    users_str = r.hget(room_id, "users").decode()
     return parse_str_into_list(users_str)
 
 
@@ -183,15 +186,17 @@ def start_game(room_id):
 
 def enter_room(room_id, user_id):
 
-    if get_user_count(room_id) == 2:
-        raise InvalidMethod("방이 가득 찼습니다.")
+    if r.hexists(room_id, "users") == 1:
+        if get_user_count(room_id) == 2:
+            raise InvalidMethod("방이 가득 찼습니다.")
 
-    user_list = get_user_list(room_id)
-    user_list.append(user_id)
+        user_list = get_user_list(room_id)
+        user_list.append(user_id)
+        user_str = parse_list_into_str(user_list)
+        r.hset(room_id, "users", user_str)
 
-    user_str = parse_list_into_str(user_list)
-
-    r.hset(room_id, "users", user_str)
+    else:
+        r.hset(room_id, "users", user_id)
 
 
 def exit_room(room_id, user_id):
