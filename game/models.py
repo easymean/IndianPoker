@@ -5,14 +5,14 @@ from utils.redis_client import r
 from enum import Enum
 
 
-class UserState(int, Enum):
-    WAIT = 0
-    READY = 1
+class UserState(str, Enum):
+    WAIT = "WAIT"
+    READY = "READY"
 
 
-class RoomState(int, Enum):
-    READY = 1
-    START = 2
+class RoomState(str, Enum):
+    READY = "READY"
+    START = "START"
 
 
 class ClientMessageType(str, Enum):
@@ -84,11 +84,11 @@ def get_nickname(user_id):
 
 
 def get_ready(user_id):
-    r.hset(user_id, "ready_state", UserState.READY)
+    r.hset(user_id, "ready_state", "READY")
 
 
 def cancel_ready(user_id):
-    r.hset(user_id, "ready_state", UserState.WAIT)
+    r.hset(user_id, "ready_state", "WAIT")
 
 
 def give_cards(user1, user2):
@@ -122,7 +122,7 @@ class Room:
     def __init__(self, name):
         self.id = uuid.uuid4()
         self.name = name
-        self.state = RoomState.READY
+        self.state = "READY"
         self.round = 0
         self.users = ""
 
@@ -169,14 +169,13 @@ def are_both_users_ready(room_id):
     for user in user_list:
         if check_user_state(user) != UserState.READY:
             return False
-
     return True
 
 
 def start_game(room_id):
     if check_room_state(room_id) == RoomState.START:
         raise InvalidMethod("이미 시작 상태입니다.")
-    r.hset(room_id, "state", RoomState.START)
+    r.hset(room_id, "state", "START")
 
     user_list = get_user_list(room_id)
     give_cards(user_list[0], user_list[1])
