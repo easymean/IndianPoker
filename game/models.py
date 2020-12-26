@@ -122,6 +122,10 @@ def get_cards_list(user_id):
     return parse_str_into_list(cards_str)
 
 
+def get_user_group_name(user_id):
+    return f'user_{user_id}'
+
+
 class Room:
     def __init__(self, name):
         self.id = uuid.uuid4()
@@ -192,10 +196,16 @@ def start_game(room_id):
 def enter_room(room_id, user_id):
 
     if r.hexists(room_id, "users") == 1:
+
+        user_list = get_user_list(room_id)
+
+        if user_id in user_list:
+            print("이미 존재하는 사용자입니다.")
+            return
+
         if get_user_count(room_id) == 2:
             raise InvalidMethod("방이 가득 찼습니다.")
 
-        user_list = get_user_list(room_id)
         user_list.append(user_id)
         user_str = parse_list_into_str(user_list)
         r.hset(room_id, "users", user_str)
@@ -260,11 +270,3 @@ def get_opponent(room_id, me):
     user_list = get_user_list(room_id)
     return user_list[0] if user_list[1] == me else user_list[1]
 
-
-def check_betting(room_id, user_id, bet):
-    r.zincrby(room_id, bet, user_id)
-
-
-def raise_betting(room_id, user_id, increment):
-    increased = r.zincrby(room_id, increment, user_id)
-    return increased
