@@ -26,21 +26,7 @@
         document.querySelector('#enter-room-submit').onclick = function(e) {
             var roomCode = document.querySelector('#room-code-input').value;
             window.location.href = `http://${window.location.host}/api/game/room/${roomCode}/`;
-            // var enterRoomUrl = `http://${window.location.host}/api/game/room/${roomCode}/`;
-            //
-            // fetch(enterRoomUrl, {
-            //     method: 'GET',
-            //     headers: {
-            //         'Content-Type': 'application/json'
-            //     }
-            // }).then(res => res.json())
-            // .then ((json) => {
-            //     var roomId = json.room_id;
-            //    window.location.href = `http://${window.location.host}/api/game/room/${roomId}/`;
-            // }).catch(error =>
-            //     console.error('ERROR: ', error));
 
-            //window.location.pathname = `api/game/room/${roomCode}/`;
         };
 
         document.querySelector('#room-name-input').focus();
