@@ -21,3 +21,9 @@ class SocketError(Exception):
     def __init__(self, code):
         super().__init__(code)
         self.code = code
+
+
+class UserDoesNotExist(Exception):
+    def __init__(self, code):
+        super().__init__(code)
+        self.code = "User Does Not Exist"

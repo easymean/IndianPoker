@@ -138,7 +138,7 @@ REST_FRAMEWORK = {
         "rest_framework.renderers.JSONRenderer",
         "rest_framework.renderers.BrowsableAPIRenderer",
     ],
-    'EXCEPTION_HANDLER': 'IndianPoker.utils.exceptions.custom_exception_handler'
+    'EXCEPTION_HANDLER': 'utils.exceptions.custom_exception_handler'
 }
 
 redis_host = os.environ.get('REDIS_HOST', 'localhost')
