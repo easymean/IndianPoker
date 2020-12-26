@@ -165,28 +165,45 @@ class GameInfoConsumer(AsyncJsonWebsocketConsumer):
         nickname = get_nickname(user_id)
         msg = f'{nickname}님이 레디를 취소했습니다.'
         msg_obj = ClientMessage('WAIT', msg)
-
         await self.send_message(msg_obj.to_json(), msg_obj.type)
 
     async def game_check(self, event):
         user_id = event['sender_id']
+        room_id = event['room_id']
         bet = event['bet']
 
-        check_betting(self.room_id, user_id, bet)
+        check_betting(room_id, user_id, bet)
 
         nickname = get_nickname(user_id)
-        msg = f'{nickname} 님이 check했습니다.'
+        msg = f'{nickname}님이 check했습니다.'
         msg_obj = ClientMessage('CHECK', msg)
 
         await self.send_message(msg_obj.to_json(), msg_obj.type)
 
     async def game_bet(self, event):
         user_id = event['sender_id']
+        room_id = event['room_id']
         bet = event['bet']
-        pass
+
+        nickname = get_nickname(user_id)
+        increment = raise_betting(room_id, user_id, bet)
+
+        msg = f'{nickname}이 {increment}만큼 판돈을 올렸습니다.'
+        msg_obj = ClientMessage('BET', msg)
+        await self.send_message(msg_obj.to_json(), msg_obj.type)
 
     async def call_message(self, event):
-        pass
+
+        user_id = event['sender_id']
+        room_id = event['room_id']
+        bet = event['bet']
+
+        nickname = get_nickname(user_id)
+        check_betting(room_id, user_id, bet)
+
+        msg = f'{nickname}이 올린 금액을 승낙했습니다.'
+        msg_obj = ClientMessage('CALL', msg)
+        await self.send_message(msg_obj.to_json(), msg_obj.type)
 
     async def raise_message(self, event):
         pass
