@@ -9,18 +9,26 @@ from utils.exceptions import SocketError
 class GameInfoConsumer(AsyncJsonWebsocketConsumer):
 
     async def connect(self):
+        try:
+            user_id = self.scope['user']
+            user = find_user(user_id)
+
+            if user == "":
+                await self.close(code='User Does Not Exist')
+                raise UserDoesNotExist('User Does Not Exist')
         self.room_id = self.scope['url_route']['kwargs']['room_id']
         self.room_group_name = f'game_{self.room_id}'
         await self.accept()
 
     async def disconnect(self, close_code):
         pass
+        user_id = self.scope['user']
 
     # receive message from websocket
     async def receive_json(self, content):
 
         message_type = content.get("type", None)
-        print(message_type)
+        user_id = self.scope['user']
 
         user_id = content['sender_id']
 
