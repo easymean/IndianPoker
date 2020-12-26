@@ -38,7 +38,11 @@ def parse_list_into_str(given_list):
 
 def parse_str_into_list(given_str):
     parsed_list = []
-    for ele in given_str.split(','):
+    if given_str == '':
+        return parsed_list
+
+    decoded_given_str = given_str.decode()
+    for ele in decoded_given_str.split(','):
         parsed_list.append(ele)
 
     return parsed_list
@@ -114,7 +118,7 @@ def give_cards(user1, user2):
 
 
 def get_cards_list(user_id):
-    cards_str = r.hget(user_id, "cards").decode()
+    cards_str = r.hget(user_id, "cards")
     return parse_str_into_list(cards_str)
 
 
@@ -154,7 +158,7 @@ def delete_room(room_id):
 
 # 방에 있는 유저들이 list로 리턴
 def get_user_list(room_id):
-    users_str = r.hget(room_id, "users").decode()
+    users_str = r.hget(room_id, "users")
     return parse_str_into_list(users_str)
 
 
