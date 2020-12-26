@@ -75,7 +75,7 @@ def find_user(user_id):
 
 
 def delete_user(user_id):
-    r.hdel(user_id)
+    r.delete(user_id)
 
 
 def check_user_state(user_id):
@@ -153,7 +153,7 @@ def find_room(room_id):
 
 
 def delete_room(room_id):
-    r.hdel(room_id)
+    r.delete(room_id)
 
 
 # 방에 있는 유저들이 list로 리턴

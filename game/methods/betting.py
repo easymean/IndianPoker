@@ -1,18 +1,12 @@
-def check(user_id, ):
-    pass
+from utils.redis_client import r
 
 
-def bet():
-    pass
+def check_betting(room_id, user_id, bet):
+    z_name = f'{room_id}:betting'
+    r.zincrby(z_name, bet, user_id)
 
 
-def call_bet():
-    pass
-
-
-def raise_bet():
-    pass
-
-
-def die():
-    pass
+def raise_betting(room_id, user_id, increment):
+    z_name = f'{room_id}:betting'
+    increased = r.zincrby(z_name, {user_id: increment})
+    return increased
