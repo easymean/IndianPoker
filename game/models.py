@@ -126,9 +126,9 @@ class Room:
     def __init__(self, name):
         self.id = uuid.uuid4()
         self.name = name
-        self.state = "READY"
+        self.state = 'READY'
         self.round = 0
-        self.users = ""
+        self.users = ''
 
     def __str__(self):
         return str(self.id)
@@ -136,15 +136,15 @@ class Room:
     def make_room(self):
         hash_key = str(self.id)
         field_value = {
-            "name": self.name,
-            "state": self.state,
-            "round": self.round,
+            'name': self.name,
+            'state': self.state,
+            'round': self.round,
         }
         r.hmset(hash_key, field_value)
-        r.rpush("room", hash_key)
+        r.rpush('room', hash_key)
 
 
-def get_group_name(room_id):
+def get_room_group_name(room_id):
     return f'game_{room_id}'
 
 
@@ -251,9 +251,7 @@ class ClientMessage:
 
     def start_game(self, room_id, me):
         self.this_turn = me
-
         opponent = get_opponent(room_id, me)
-
         opponent_cards_list = get_cards_list(opponent)
         self.opponent_card = opponent_cards_list[0]
 

@@ -1,9 +1,11 @@
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 # I/O가 왼료된 경우에만 await 함수부분이 실행됨
+from game.methods.betting import check_betting, raise_betting
 from game.models import get_nickname, are_both_users_ready, ClientMessage, exit_room, get_ready, cancel_ready, \
-    start_game, get_group_name, check_betting
-from utils.exceptions import SocketError
+    start_game, get_user_list, find_user, get_user_group_name, get_room_group_name
+
+from utils.exceptions import SocketError, UserDoesNotExist
 
 
 class GameInfoConsumer(AsyncJsonWebsocketConsumer):
@@ -16,31 +18,71 @@ class GameInfoConsumer(AsyncJsonWebsocketConsumer):
             if user == "":
                 await self.close(code='User Does Not Exist')
                 raise UserDoesNotExist('User Does Not Exist')
-        self.room_id = self.scope['url_route']['kwargs']['room_id']
-        self.room_group_name = f'game_{self.room_id}'
-        await self.accept()
+
+            self.room_id = self.scope['url_route']['kwargs']['room_id']
+            self.room_group_name = get_room_group_name(self.room_id)
+
+            user_group_name = get_user_group_name(user_id)
+
+            await self.channel_layer.group_add(
+                user_group_name,
+                self.channel_name
+            )
+
+            await self.channel_layer.group_add(
+                self.room_group_name,
+                self.channel_name
+            )
+
+            await self.accept()
+
+        except Exception as e:
+            print(e)
+            await self.close()
 
     async def disconnect(self, close_code):
-        pass
+        room_id = self.scope['url_route']['kwargs']['room_id']
         user_id = self.scope['user']
+
+        event = {
+            room_id: room_id,
+            user_id: user_id
+        }
+        #await self.game_exit(event)
+
+        await self.close(close_code)
 
     # receive message from websocket
     async def receive_json(self, content):
 
         message_type = content.get("type", None)
         user_id = self.scope['user']
+        room_id = self.scope['url_route']['kwargs']['room_id']
+        user_group_name = get_user_group_name(user_id)
 
-        user_id = content['sender_id']
+        lower_message_type = message_type.lower()
+        parsed_message_type = f'game.{lower_message_type}'
 
         try:
-            if message_type == "ENTER":
-                await self.enter_room(user_id)
-
-            elif message_type == "EXIT":
-                await self.exit_room(user_id)
-
+            if message_type in ['ENTER', 'EXIT', 'READY', 'WAIT']:
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': parsed_message_type,
+                        'room_id': room_id,
+                        'sender_id': user_id,
+                    }
+                )
             else:
-                await self.send_room(message_type, content)
+                await self.channel_layer.group_send(
+                    user_group_name,
+                    {
+                        'type': parsed_message_type,
+                        'room_id': room_id,
+                        'sender_id': user_id,
+                        'bet': content['bet']
+                    }
+                )
 
         except ValueError as e:
             await self.send_json({"error": e.code})
@@ -55,78 +97,7 @@ class GameInfoConsumer(AsyncJsonWebsocketConsumer):
         )
 
     # 방에 입장시 채널 그룹에 조인됩니다.
-    async def enter_room(self, user_id):
-
-        # join group
-        await self.channel_layer.group_add(
-            self.room_group_name,
-            self.channel_name,
-        )
-
-        # send message to room group
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'game.join',
-                'sender_id': user_id,
-            }
-        )
-
-    async def exit_room(self, user_id):
-
-        nickname = get_nickname(user_id)
-
-        # delete user from database
-        exit_room(self.room_id, user_id)
-
-        # leave room group
-        await self.channel_layer.group_discard(
-            self.room_group_name,
-            self.channel_name
-        )
-
-        msg = f'{nickname}님이 퇴장하셨습니다'
-        msg_obj = ClientMessage('EXIT', msg)
-
-        # send message to websocket
-        await self.send_message(msg_obj.to_json(), msg_obj.type)
-
-    async def send_room(self, message_type, message):
-
-
-        # parse message choice
-        lower_message_type = message_type.lower()
-        parsed_message_choice = f'game.{lower_message_type}'
-
-        if message_type in ['READY', 'WAIT', 'START']:
-
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {
-                    'type': parsed_message_choice,
-                    'sender_id': message['sender_id'],
-                }
-            )
-
-        elif message_type in ['CHECK', 'BET', 'DIE']:
-            user_id = message['sender_id']
-            user_group_name = f'user_{user_id}'
-
-            await self.channel_layer.group_add(
-                user_group_name,
-                self.channel_name,
-            )
-
-            await self.channel_layer.group_send(
-                user_group_name,
-                {
-                    'type': parsed_message_choice,
-                    'sender_id': message['sender_id'],
-                    'bet': message['bet']
-                }
-            )
-
-    async def game_join(self, event):
+    async def game_enter(self, event):
         nickname = get_nickname(event['sender_id'])
 
         msg = f'{nickname}님이 입장하셨습니다'
@@ -134,6 +105,31 @@ class GameInfoConsumer(AsyncJsonWebsocketConsumer):
 
         # send message to websocket
         await self.send_message(msg_obj.to_json(), msg_obj.type)
+
+    async def game_exit(self, event):
+
+        user_id = event['sender_id']
+        room_id = event['room_id']
+        nickname = get_nickname(user_id)
+
+        # leave room group
+        user_group_name = get_user_group_name(user_id)
+        await self.channel_layer.group_discard(
+            user_group_name,
+            self.channel_name
+        )
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
+
+        exit_room(room_id, user_id)
+
+        msg = f'{nickname}님이 퇴장하셨습니다'
+        msg_obj = ClientMessage('EXIT', msg)
+        await self.send_message(msg_obj.to_json(), msg_obj.type)
+
+        await self.close()
 
     async def game_ready(self, event):
         user_id = event['sender_id']
