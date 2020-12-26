@@ -21,28 +21,27 @@
 
     <script type="text/javascript">
         const roomId = "{{ room_id }}";
-        const cookieName = 'user_id';
+        //const cookieName = 'user_id';
 
-        var isReadyToggled;
+        let isReadyToggled;
 
-
-        let getCookie = (name) => {
-            let cookieArr = document.cookie.split(';');
-
-            for(let i=0; i<cookieArr.length; i++){
-                let cookie = cookieArr[i];
-                console.log(cookie);
-                while(cookie.charAt(0)===' '){
-                    cookie = cookie.substring(1);
-                }
-                let cookieVal = cookie.split('=');
-                if(cookieVal[0] === name){
-                    console.log(cookieVal);
-                    return cookieVal[1];
-                }
-            }
-        };
-        const userId = getCookie(cookieName);
+        // let getCookie = (name) => {
+        //     let cookieArr = document.cookie.split(';');
+        //
+        //     for(let i=0; i<cookieArr.length; i++){
+        //         let cookie = cookieArr[i];
+        //         console.log(cookie);
+        //         while(cookie.charAt(0)===' '){
+        //             cookie = cookie.substring(1);
+        //         }
+        //         let cookieVal = cookie.split('=');
+        //         if(cookieVal[0] === name){
+        //             console.log(cookieVal);
+        //             return cookieVal[1];
+        //         }
+        //     }
+        // };
+        // const userId = getCookie(cookieName);
 
         let ws = new WebSocket(
             `ws://${window.location.host}/ws/game/room/${roomId}/`
@@ -52,7 +51,6 @@
             console.log('WebSocket opened');
              let msg = {
                     type : 'ENTER',
-                 sender_id: userId,
             };
             ws.send(
                   JSON.stringify(msg)
@@ -68,13 +66,11 @@
             if(isReadyToggled === false){
                 msg = {
                     type: 'READY',
-                    sender_id: userId,
                 };
                 ws.send(JSON.stringify(msg));
             }else {
                 msg = {
                     type: 'WAIT',
-                    sender_id: userId,
                 };
                 ws.send(JSON.stringify(msg));
             }
@@ -85,7 +81,6 @@
         document.querySelector('#exit-message-submit').onclick = (e) => {
             let msg = {
                 type: 'EXIT',
-                sender_id: userId,
             };
             ws.send(JSON.stringify(msg));
 
@@ -94,7 +89,6 @@
         document.querySelector('#check-message-submit').onclick = (e) => {
             let msg = {
                     type: 'CHECK',
-                    sender_id: userId,
                     bet: 1
                 };
             ws.send(JSON.stringify(msg));
@@ -104,16 +98,7 @@
             let data = JSON.parse(event.data);
             let msgObj = JSON.parse(data.message);
 
-            let msg;
-            if(data.type === 'START'){
-                 msg = {
-                     type: 'START',
-                     sender_id: userId,
-                };
-                ws.send(JSON.stringify(msg));
-
-            }
-            console.log(msgObj.message);
+            console.log(msgObj);
             document.querySelector('#chat-log').value += (msgObj.message + '\n');
 
         };
