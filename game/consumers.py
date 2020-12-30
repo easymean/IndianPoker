@@ -191,9 +191,8 @@ class GameInfoConsumer(AsyncJsonWebsocketConsumer):
         )
 
         if round_ended:
-            winner, loser = who_is_winner_loser(room_id, betting_round)
-            await self.get_game_result(room_id=room_id, winner=winner, loser=loser,
-                                       betting_round=betting_round, die=False)
+            await self.get_game_result(room_id=room_id,
+                                       betting_round=betting_round)
         else:
             await self.get_next_turn(room_id, betting_round)
 
@@ -216,9 +215,8 @@ class GameInfoConsumer(AsyncJsonWebsocketConsumer):
                 'sender_id': user_id,
             }
         )
-        winner, loser = who_is_winner_loser(room_id=room_id, this_round=betting_round, loser=user_id)
-        await self.get_game_result(room_id=room_id, winner=winner, loser=loser,
-                                   betting_round=betting_round, die=True)
+        await self.get_game_result(room_id=room_id,
+                                   betting_round=betting_round, loser=user_id)
 
     async def game_raise(self, room_id, user_id, bet, betting_round):
         increased = raise_betting(room_id, user_id, bet)
@@ -242,23 +240,29 @@ class GameInfoConsumer(AsyncJsonWebsocketConsumer):
             }
         )
 
-        winner, loser = who_is_winner_loser(room_id, betting_round)
+        await self.get_game_result(room_id=room_id,
+                                   betting_round=betting_round)
 
-        await self.get_game_result(room_id=room_id, winner=winner, loser=loser,
-                                   betting_round=betting_round, die=False)
+    async def get_game_result(self, room_id, betting_round, loser=None):
+        die = False
+        if loser is not None:
+            die = True
 
-    async def get_game_result(self, room_id, winner, loser, betting_round, die):
+        [(winner, winner_card), (loser, loser_card)] = who_is_winner_loser(room_id, betting_round, loser)
 
         if winner == 'TIE':
-            pass
+            await self.channel_layer.group_send(
+                room_id, {
+                    'type': 'tie.message',
+                    'card': winner_card
+                }
+            )
+
         else:
             if die is True:
                 loose_when_die(winner, loser)
             else:
                 total_up_points(room_id, winner, loser)
-
-            winner_card = get_user_card_in_this_round(user_id=winner, this_round=betting_round)
-            loser_card = get_user_card_in_this_round(user_id=loser, this_round=betting_round)
 
             winner_point = get_user_point(user_id=winner)
             loser_point = get_user_point(user_id=loser)
@@ -284,12 +288,13 @@ class GameInfoConsumer(AsyncJsonWebsocketConsumer):
                     'my_point': loser_point
                 }
             )
+            init_betting(room_id)
 
-            await init_betting(room_id)
-            if betting_round < 10:
-                await self.start_new_round(room_id)
-            else:
-                await self.end_game()
+        end_round(room_id)
+        if betting_round < 10:
+            await self.start_new_round(room_id)
+        else:
+            await self.end_game()
 
     # 방에 입장시 채널 그룹에 조인됩니다.
     async def enter_message(self, event):
@@ -410,8 +415,10 @@ class GameInfoConsumer(AsyncJsonWebsocketConsumer):
         await self.send_message(msg_obj.to_json(), msg_obj.type)
 
     async def tie_message(self, event):
+        card = event['card']
         msg = '무승부입니다.'
         msg_obj = ClientMessage('TIE', msg)
+        msg_obj.set_result('TIE', 'TIE', card, card)
         await self.send_message(msg_obj.to_json(), msg_obj.type)
 
     async def result_message(self, event):
@@ -423,5 +430,6 @@ class GameInfoConsumer(AsyncJsonWebsocketConsumer):
 
         msg = '라운드가 끝났습니다. 결과를 확인해주세요'
         msg_obj = ClientMessage('RESULT', msg)
-        msg_obj.set_result(winner, loser, my_card, opponent_card, my_point)
+        msg_obj.set_result(winner, loser, my_card, opponent_card)
+        msg_obj.my_point = my_point
         await self.send_message(msg_obj.to_json(), msg_obj.type)
