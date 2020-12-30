@@ -1,6 +1,5 @@
-import uuid, random, json
+import uuid, json
 
-from utils.exceptions import InvalidMethod
 from utils.redis_client import r
 from enum import Enum
 
@@ -22,38 +21,19 @@ class ClientMessageType(str, Enum):
     CHAT = "CHAT"
     # THIS IS ABOUT CLIENT STATE
     READY = "READY"
-    WAIT = "WAIT"    # THIS IS ABOUT GAME STATE
-    START = "START"
-    GAME = "GAME"
+    WAIT = "WAIT"
 
 
-class GameState(int, Enum):
-    pass
-
-
-# 리스트를 string으로 파싱
-def parse_list_into_str(given_list):
-    return ','.join(given_list)
-
-
-def parse_str_into_list(given_str):
-    parsed_list = []
-    if given_str == '':
-        return parsed_list
-
-    decoded_given_str = given_str.decode()
-    for ele in decoded_given_str.split(','):
-        parsed_list.append(ele)
-
-    return parsed_list
+class ServerMessageType(str, Enum):
+    GAME = 'GAME'
 
 
 class User:
     def __init__(self, nickname):
         self.id = uuid.uuid4()
         self.nickname = nickname
-        self.ready_state = UserState.WAIT
-        self.score = 10
+        self.state = 'WAIT'
+        self.point = 30
         self.cards = ""
 
     def __str__(self):
@@ -63,67 +43,11 @@ class User:
         hash_key = str(self.id)
         field_value = {
             "nickname": self.nickname,
-            "ready_state": self.ready_state,
-            "score": self.score,
+            "state": self.state,
+            "point": self.point,
         }
         r.hmset(hash_key, field_value)
         r.rpush("user", hash_key)
-
-
-def find_user(user_id):
-    return r.hvals(user_id)
-
-
-def delete_user(user_id):
-    r.delete(user_id)
-
-
-def check_user_state(user_id):
-    return r.hget(user_id, "ready_state").decode()
-
-
-def get_nickname(user_id):
-    nickname = r.hget(user_id, "nickname")
-    return nickname.decode("UTF-8")
-
-
-def get_ready(user_id):
-    r.hset(user_id, "ready_state", "READY")
-
-
-def cancel_ready(user_id):
-    r.hset(user_id, "ready_state", "WAIT")
-
-
-def give_cards(user1, user2):
-    list1 = []
-    list2 = []
-    ran_num = random.randint(1, 10)
-
-    for i in range(10):
-        while ran_num in list1:
-            ran_num = random.randint(1,10)
-        list1.append(ran_num)
-
-    for i in range(10):
-        while ran_num in list2:
-            ran_num = random.randint(1,10)
-        list2.append(ran_num)
-
-    list1_str = parse_list_into_str(map(str, list1))
-    list2_str = parse_list_into_str(map(str, list2))
-
-    r.hset(user1, "cards", list1_str)
-    r.hset(user2, "cards", list2_str)
-
-
-def get_cards_list(user_id):
-    cards_str = r.hget(user_id, "cards")
-    return parse_str_into_list(cards_str)
-
-
-def get_user_group_name(user_id):
-    return f'user_{user_id}'
 
 
 class Room:
@@ -132,6 +56,7 @@ class Room:
         self.name = name
         self.state = 'READY'
         self.round = 0
+        self.order = -1
         self.users = ''
 
     def __str__(self):
@@ -143,99 +68,22 @@ class Room:
             'name': self.name,
             'state': self.state,
             'round': self.round,
+            'order': self.order,
         }
         r.hmset(hash_key, field_value)
         r.rpush('room', hash_key)
-
-
-def get_room_group_name(room_id):
-    return f'game_{room_id}'
-
-
-def find_room(room_id):
-    return r.hvals(room_id)
-
-
-def delete_room(room_id):
-    r.delete(room_id)
-
-
-# 방에 있는 유저들이 list로 리턴
-def get_user_list(room_id):
-    users_str = r.hget(room_id, "users")
-    return parse_str_into_list(users_str)
-
-
-def get_user_count(room_id):
-    user_list = get_user_list(room_id)
-    return len(user_list)
-
-
-def check_room_state(room_id):
-    return r.hget(room_id, "state")
-
-
-def are_both_users_ready(room_id):
-    user_list = get_user_list(room_id)
-    for user in user_list:
-        if check_user_state(user) != UserState.READY:
-            return False
-    return True
-
-
-def start_game(room_id):
-    if check_room_state(room_id) == RoomState.START:
-        raise InvalidMethod("이미 시작 상태입니다.")
-
-    r.hset(room_id, "state", "START")
-
-    user_list = get_user_list(room_id)
-    give_cards(user_list[0], user_list[1])
-
-
-def enter_room(room_id, user_id):
-
-    if r.hexists(room_id, "users") == 1:
-
-        user_list = get_user_list(room_id)
-
-        if user_id in user_list:
-            print("이미 존재하는 사용자입니다.")
-            return
-
-        if get_user_count(room_id) == 2:
-            raise InvalidMethod("방이 가득 찼습니다.")
-
-        user_list.append(user_id)
-        user_str = parse_list_into_str(user_list)
-        r.hset(room_id, "users", user_str)
-
-    else:
-        r.hset(room_id, "users", user_id)
-
-
-def exit_room(room_id, user_id):
-    delete_user(user_id)
-
-    user_list = get_user_list(room_id)
-    user_list.remove(user_id)
-
-    # 남아 있는 유저가 없으면 방을 삭제한다
-    if len(user_list) == 0:
-        delete_room(room_id)
-    else:
-        user_str = parse_list_into_str(user_list)
-        r.hset(room_id, "users", user_str)
 
 
 class ClientMessage:
     type = 0
     opponent_card = 0
     opponent_bet = 1
+    my_point = 10
+    this_round = 0
     this_turn = ""
     result = {}
-    round_status = -1
-    msg = ""
+    last_choice = ""
+    message = ""
 
     def __init__(self, message_type, message):
         self.type = message_type
@@ -244,6 +92,7 @@ class ClientMessage:
         self.this_turn = ""
         self.result = {
             "winner": "",
+            "loser": "",
             "my_card": 0,
             "opponent_card": 0,
         }
@@ -254,19 +103,17 @@ class ClientMessage:
         return json.dumps(self, default=lambda o: o.__dict__,
                           sort_keys=True, indent=4, ensure_ascii=False)
 
-    def set_result(self, winner, my_card, opponent_card):
-        self.result["winner"] = winner
-        self.result["my_card"] = my_card
-        self.result["opponent_card"] = opponent_card
+    def set_result(self, winner, loser, my_card, opponent_card, my_point):
+        self.result['winner'] = winner
+        self.result['loser'] = loser
+        self.result['my_card'] = my_card
+        self.result['opponent_card'] = opponent_card
+        self.my_point = my_point
 
-    def start_game(self, room_id, me):
+    def set_card_info(self, opponent_card, me):
         self.this_turn = me
-        opponent = get_opponent(room_id, me)
-        opponent_cards_list = get_cards_list(opponent)
-        self.opponent_card = opponent_cards_list[0]
+        self.opponent_card = opponent_card
 
 
-def get_opponent(room_id, me):
-    user_list = get_user_list(room_id)
-    return user_list[0] if user_list[1] == me else user_list[1]
+
 

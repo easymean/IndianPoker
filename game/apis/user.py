@@ -57,11 +57,10 @@ def give_users_cards(user1, user2):
     r.hset(user2, "cards", list2_str)
 
 
-def get_card_in_this_round(user_id, this_round):
-    cards_bytes = r.hget(user_id, "cards")
-    parsed_card_list = parse_bytes_into_list(cards_bytes)
-    return parsed_card_list[this_round]
-
-
-def get_user_group_name(user_id):
-    return f'user_{user_id}'
+def get_user_card_in_this_round(user_id, this_round):
+    try:
+        cards_bytes = r.hget(user_id, "cards")
+        parsed_card_list = parse_bytes_into_list(cards_bytes)
+        return parsed_card_list[this_round]
+    except Exception as e:
+        print(e)
