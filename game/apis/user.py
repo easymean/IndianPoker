@@ -27,11 +27,13 @@ def get_user_point(user_id):
     return parse_bytes_into_int(bytes_point)
 
 
-def set_ready(user_id):
+def set_user_ready(user_id):
+    print(f'{user_id}님이 레디를 누르셨습니다.')
     r.hset(user_id, "state", "READY")
 
 
-def cancel_ready(user_id):
+def set_user_wait(user_id):
+    print(f'{user_id}님이 레디를 취소하셨습니다.')
     r.hset(user_id, "state", "WAIT")
 
 
