@@ -136,18 +136,23 @@ def who_is_winner_loser(room_id, this_round, loser=None):
 
     if loser is not None:
         if loser == user_list[0]:
-            return user_list[1], loser
+            winner = user_list[1]
         else:
-            return user_list[0], loser
+            winner = user_list[0]
+        winner_card = get_user_card_in_this_round(user_id=winner, this_round=this_round)
+        loser_card = get_user_card_in_this_round(user_id=loser, this_round=this_round)
 
-    card_list = []
-    for user in user_list:
-        card = get_user_card_in_this_round(user, this_round)
-        card_list.append(card)
+        return [(winner, winner_card), (loser, loser_card)]
 
-    if card_list[0] < card_list[1]:
-        return user_list[1], user_list[0]
-    elif card_list[0] > card_list[1]:
-        return user_list[0], user_list[1]
     else:
-        return 'TIE', 'TIE'
+        card_list = []
+        for user in user_list:
+            card = get_user_card_in_this_round(user, this_round)
+            card_list.append(card)
+
+        if card_list[0] < card_list[1]:
+            return [(user_list[1], card_list[1]), (user_list[0], card_list[0])]
+        elif card_list[0] > card_list[1]:
+            return [(user_list[0], card_list[0]), (user_list[1], card_list[1])]
+        else:
+            return [('TIE', card_list[0]), ('TIE', card_list[1])]
