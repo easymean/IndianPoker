@@ -20,83 +20,52 @@
     <input id="die-message-submit" type="button" value="Die">
 
     <script type="text/javascript">
-        const roomId = "{{ room_id }}";
-        //const cookieName = 'user_id';
+         const roomId = "{{ room_id }}";
+         const ws = new WebSocket(
+            `ws://${window.location.host}/ws/game/room/${roomId}/`);
 
         let isReadyToggled;
+        let isGameStarted;
 
-        // let getCookie = (name) => {
-        //     let cookieArr = document.cookie.split(';');
-        //
-        //     for(let i=0; i<cookieArr.length; i++){
-        //         let cookie = cookieArr[i];
-        //         console.log(cookie);
-        //         while(cookie.charAt(0)===' '){
-        //             cookie = cookie.substring(1);
-        //         }
-        //         let cookieVal = cookie.split('=');
-        //         if(cookieVal[0] === name){
-        //             console.log(cookieVal);
-        //             return cookieVal[1];
-        //         }
-        //     }
-        // };
-        // const userId = getCookie(cookieName);
-
-        let ws = new WebSocket(
-            `ws://${window.location.host}/ws/game/room/${roomId}/`
-        );
+        const send = async(type, round, bet) => {
+            let msg = {
+                type: type,
+                round: round,
+                bet: bet
+            }
+            await ws.send(JSON.stringify(msg));
+        }
 
         ws.onopen = (e) => {
             console.log('WebSocket opened');
-             let msg = {
-                    type : 'ENTER',
-            };
-            ws.send(
-                  JSON.stringify(msg)
-            );
+            send('ENTER', 0, 1);
             isReadyToggled = false;
         };
 
-
-
         document.querySelector('#ready-message-submit').onclick = (e) => {
 
-            let msg;
             if(isReadyToggled === false){
-                msg = {
-                    type: 'READY',
-                };
-                ws.send(JSON.stringify(msg));
+                send('READY', 0, 1);
+                isReadyToggled = true;
             }else {
-                msg = {
-                    type: 'WAIT',
-                };
-                ws.send(JSON.stringify(msg));
+                send('WAIT', 0, 1);
+                isReadyToggled = false;
             }
-             isReadyToggled = !isReadyToggled;
 
         };
 
         document.querySelector('#exit-message-submit').onclick = (e) => {
-            let msg = {
-                type: 'EXIT',
-            };
-            ws.send(JSON.stringify(msg));
-
+            send('EXIT', 0, 1);
         };
 
         document.querySelector('#check-message-submit').onclick = (e) => {
-            let msg = {
-                    type: 'CHECK',
-                    bet: 1
-                };
-            ws.send(JSON.stringify(msg));
+            send('CHECK', 0, 1);
         }
 
         ws.onmessage = (event) => {
             let data = JSON.parse(event.data);
             let msgObj = JSON.parse(data.message);
+
 
             console.log(msgObj);
             document.querySelector('#chat-log').value += (msgObj.message + '\n');
