@@ -42,12 +42,11 @@ class GameInfoConsumer(AsyncJsonWebsocketConsumer):
         user_id = self.scope['user']
 
         event = {
-            room_id: room_id,
-            user_id: user_id
+            'room_id': room_id,
+            'sender_id': user_id
         }
-        #await self.game_exit(event)
 
-        await self.close(close_code)
+        await self.exit_message(event)
 
     # receive message from websocket
     async def receive_json(self, content):
