@@ -103,12 +103,11 @@ class ClientMessage:
         return json.dumps(self, default=lambda o: o.__dict__,
                           sort_keys=True, indent=4, ensure_ascii=False)
 
-    def set_result(self, winner, loser, my_card, opponent_card, my_point):
+    def set_result(self, winner, loser, my_card, opponent_card):
         self.result['winner'] = winner
         self.result['loser'] = loser
         self.result['my_card'] = my_card
         self.result['opponent_card'] = opponent_card
-        self.my_point = my_point
 
     def set_card_info(self, opponent_card, me):
         self.this_turn = me
