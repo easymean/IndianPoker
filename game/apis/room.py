@@ -1,5 +1,5 @@
 from game.apis.common import parse_bytes_into_list, parse_list_into_str, parse_bytes_into_int
-from game.apis.user import check_user_state, give_cards, delete_user, get_card_in_this_round
+from game.apis.user import check_user_state, give_users_cards, delete_user, get_user_card_in_this_round
 from game.models import UserState, RoomState
 from utils.exceptions import InvalidMethod
 from utils.redis_client import r
@@ -43,16 +43,14 @@ def are_both_users_ready(room_id):
 
 def set_game_start(room_id):
     if check_room_state(room_id) == RoomState.START:
-        print("이미 시작 상태입니다.")
-        #raise InvalidMethod("이미 시작 상태입니다.")
-        return
+        raise InvalidMethod("이미 시작 상태입니다.")
 
     r.hset(room_id, "state", "START")
     r.hset(room_id, 'round', 0)
     r.hset(room_id, 'order', 0)
 
     user_list = get_user_list(room_id)
-    give_cards(user_list[0], user_list[1])
+    give_users_cards(user_list[0], user_list[1])
     print('set game start')
 
 
@@ -119,7 +117,7 @@ def who_is_next(room_id):
     order = get_order(room_id)
 
     next_user = user_list[order % 2]
-    opponent = user_list[(order+1)%2]
+    opponent = user_list[(order+1) % 2]
     return next_user, opponent
 
 
@@ -127,12 +125,12 @@ def who_is_winner(room_id, this_round):
     user_list = get_user_list(room_id)
     card_list = []
     for user in user_list:
-        card = get_card_in_this_round(user, this_round)
+        card = get_user_card_in_this_round(user, this_round)
         card_list.append(card)
 
     if card_list[0] < card_list[1]:
         return user_list[1], user_list[0]
-    elif card_list[0]>card_list[1]:
+    elif card_list[0] > card_list[1]:
         return user_list[0], user_list[1]
     else:
         return 'TIE', 'TIE'

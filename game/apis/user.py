@@ -17,12 +17,12 @@ def check_user_state(user_id):
     return parse_bytes_into_str(bytes_state)
 
 
-def get_nickname(user_id):
+def get_user_nickname(user_id):
     bytes_nickname = r.hget(user_id, "nickname")
     return parse_bytes_into_str(bytes_nickname)
 
 
-def get_point(user_id):
+def get_user_point(user_id):
     bytes_point = r.hget(user_id, "point")
     return parse_bytes_into_int(bytes_point)
 
@@ -35,7 +35,7 @@ def cancel_ready(user_id):
     r.hset(user_id, "state", "WAIT")
 
 
-def give_cards(user1, user2):
+def give_users_cards(user1, user2):
     list1 = []
     list2 = []
     ran_num = random.randint(1, 10)
