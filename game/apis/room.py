@@ -63,8 +63,13 @@ def end_game(room_id):
     r.hset(room_id, 'order', 0)
 
 
+def init_betting(room_id):
+    z_name = f'{room_id}:betting'
+    r.delete(z_name)
+
+
 def end_round(room_id):
-    r.hset(room_id, 'last_choice', '')
+    r.hdel(room_id, 'last_choice')
     r.hincrby(room_id, 'round', 1)
 
 
@@ -76,6 +81,10 @@ def get_round(room_id):
 def get_order(room_id):
     bytes_order = r.hget(room_id, 'order')
     return parse_bytes_into_int(bytes_order)
+
+
+def increase_order(room_id):
+    r.hincrby(room_id, 'order', 1)
 
 
 def user_enter_room(room_id, user_id):
@@ -121,8 +130,16 @@ def who_is_next(room_id):
     return next_user, opponent
 
 
-def who_is_winner(room_id, this_round):
+def who_is_winner_loser(room_id, this_round, loser=None):
+
     user_list = get_user_list(room_id)
+
+    if loser is not None:
+        if loser == user_list[0]:
+            return user_list[1], loser
+        else:
+            return user_list[0], loser
+
     card_list = []
     for user in user_list:
         card = get_user_card_in_this_round(user, this_round)
