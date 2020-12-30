@@ -19,18 +19,15 @@ class GameInfoConsumer(AsyncJsonWebsocketConsumer):
                 await self.close(code='User Does Not Exist')
                 raise UserDoesNotExist('User Does Not Exist')
 
-            self.room_id = self.scope['url_route']['kwargs']['room_id']
-            self.room_group_name = get_room_group_name(self.room_id)
-
-            user_group_name = get_user_group_name(user_id)
+            room_id = self.scope['url_route']['kwargs']['room_id']
 
             await self.channel_layer.group_add(
-                user_group_name,
+                user_id,
                 self.channel_name
             )
 
             await self.channel_layer.group_add(
-                self.room_group_name,
+                room_id,
                 self.channel_name
             )
 
@@ -58,7 +55,6 @@ class GameInfoConsumer(AsyncJsonWebsocketConsumer):
         message_type = content.get("type", None)
         user_id = self.scope['user']
         room_id = self.scope['url_route']['kwargs']['room_id']
-        user_group_name = get_user_group_name(user_id)
 
         lower_message_type = message_type.lower()
         parsed_message_type = f'game.{lower_message_type}'
@@ -75,7 +71,7 @@ class GameInfoConsumer(AsyncJsonWebsocketConsumer):
                 )
             else:
                 await self.channel_layer.group_send(
-                    user_group_name,
+                    room_id,
                     {
                         'type': parsed_message_type,
                         'room_id': room_id,
@@ -113,13 +109,12 @@ class GameInfoConsumer(AsyncJsonWebsocketConsumer):
         nickname = get_nickname(user_id)
 
         # leave room group
-        user_group_name = get_user_group_name(user_id)
         await self.channel_layer.group_discard(
-            user_group_name,
+            user_id,
             self.channel_name
         )
         await self.channel_layer.group_discard(
-            self.room_group_name,
+            room_id,
             self.channel_name
         )
 
