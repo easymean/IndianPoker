@@ -4,6 +4,9 @@ def parse_list_into_str(given_list):
 
 
 def parse_bytes_into_list(given_bytes):
+    if given_bytes is None:
+        raise Exception
+
     parsed_list = []
     if given_bytes == '':
         return parsed_list
@@ -21,6 +24,7 @@ def parse_bytes_into_int(given_bytes):
 
 
 def parse_bytes_into_str(given_bytes):
-    if given_bytes == '':
-        return
+    if given_bytes is None:
+        raise Exception
+
     return given_bytes.decode('UTF-8')
