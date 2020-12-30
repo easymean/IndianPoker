@@ -65,9 +65,21 @@
         ws.onmessage = (event) => {
             let data = JSON.parse(event.data);
             let msgObj = JSON.parse(data.message);
+            let result = msgObj.result;
+
+            if (data.type === 'RESULT'){
+                let winner  = result.winner;
+                let loser = result.loser;
+                let my = result.my_card;
+                let opp = result.opponent_card;
+                console.log(winner + '가 이겼습니다.')
+                console.log(loser + '가 졌습니다.')
+                console.log('내 카드는 '+my + ' 입니다.')
+                console.log('상대방 카드는 '+opp + ' 입니다.')
+            }
 
 
-            console.log(msgObj);
+            //console.log(msgObj);
             document.querySelector('#chat-log').value += (msgObj.message + '\n');
 
         };
