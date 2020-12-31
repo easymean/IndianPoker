@@ -1,10 +1,10 @@
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 # I/O가 왼료된 경우에만 await 함수부분이 실행됨
-from game.apis.betting import check_betting, raise_betting, call_betting, if_round_ended, loose_when_die, \
-    total_up_points
-from game.apis.room import exit_room, are_both_users_ready, set_game_start, get_round, who_is_next, \
-    who_is_winner_loser, increase_order, end_round, init_betting
+from game.apis.betting import check_betting, raise_betting, call_betting, is_round_ended, \
+    reflect_result_to_points, lose_10_points_when_die
+from game.apis.room import user_leave_room, are_both_users_ready, set_game_start, get_round, who_is_next, \
+    who_is_winner_loser_and_open_card, increase_order, end_round, init_betting, open_card_after_die
 from game.apis.user import find_user, get_user_nickname, set_user_ready, set_user_wait, \
     get_user_card_in_this_round, get_user_point
 from game.models import ClientMessage
@@ -102,7 +102,7 @@ class GameInfoConsumer(AsyncJsonWebsocketConsumer):
         )
 
     async def exit_room(self, room_id, user_id):
-        exit_room(room_id, user_id)
+        user_leave_room(room_id, user_id)
         await self.channel_layer.group_send(
             room_id, {
                 'type': 'exit.message',
@@ -178,7 +178,7 @@ class GameInfoConsumer(AsyncJsonWebsocketConsumer):
         )
 
     async def game_check(self, room_id, user_id, bet, betting_round):
-        round_ended = if_round_ended(room_id)
+        round_ended = is_round_ended(room_id)
 
         increment = check_betting(room_id, user_id, bet)
 
@@ -261,9 +261,9 @@ class GameInfoConsumer(AsyncJsonWebsocketConsumer):
 
         else:
             if die is True:
-                loose_when_die(winner, loser)
+                lose_10_points_when_die(winner, loser)
             else:
-                total_up_points(room_id, winner, loser)
+                reflect_result_to_points(room_id, winner, loser)
 
             winner_point = get_user_point(user_id=winner)
             loser_point = get_user_point(user_id=loser)
