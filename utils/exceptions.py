@@ -11,19 +11,37 @@ def custom_exception_handler(exc, context):
     return response
 
 
-class InvalidMethod(APIException):
+class GameDidNotStart(APIException):
+    status_code = 405
+    default_detail = '게임이 시작되지 않았습니다.'
+    default_code = 'service unavailable'
+
+
+class GameAlreadyStarted(APIException):
+    status_code = 405
+    default_detail = '게임이 이미 시작상태입니다.'
+    default_code = 'service unavailable'
+
+
+class RoomAlreadyFull(APIException):
+    status_code = 405
+    default_detail = '방이 가득 찼습니다.'
+    default_code = 'service unavailable'
+
+
+class InvalidSocket(APIException):
     status_code = 400
-    default_detail = "Invalid method"
-    default_code = "invalid_method"
+    default_detail = 'socket closed unexpectedly'
+    default_code = 'socket error'
 
 
-class SocketError(Exception):
-    def __init__(self, code):
-        super().__init__(code)
-        self.code = code
+class UserDoesNotExist(APIException):
+    status_code = 404
+    default_detail = "유저가 존재하지 않습니다."
+    default_code = "user not found"
 
 
-class UserDoesNotExist(Exception):
-    def __init__(self, code):
-        super().__init__(code)
-        self.code = "User Does Not Exist"
+class ParsingException(APIException):
+    status_code = 404
+    default_detail = 'None 타입은 파싱이 불가합니다.'
+    default_code = 'parse error'

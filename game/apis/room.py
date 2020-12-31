@@ -48,8 +48,8 @@ def are_both_users_ready(room_id):
 
 
 def set_game_start(room_id):
-    if check_room_state(room_id) == RoomState.START:
-        raise InvalidMethod("이미 시작 상태입니다.")
+    if get_room_state(room_id) == RoomState.START:
+        raise GameAlreadyStarted
 
     r.hset(room_id, "state", "START")
     r.hset(room_id, 'round', 0)
@@ -62,7 +62,7 @@ def set_game_start(room_id):
 
 def end_game(room_id):
     if check_room_state(room_id) != RoomState.START:
-        raise InvalidMethod('게임이 시작되지 않았습니다.')
+        raise GameDidNotStart
 
     r.hset(room_id, 'state', 'READY')
     r.hset(room_id, 'round', 0)
@@ -103,7 +103,7 @@ def user_enter_room(room_id, user_id):
             return
 
         if get_user_count(room_id) == 2:
-            raise InvalidMethod("방이 가득 찼습니다.")
+            raise RoomAlreadyFull
 
         user_list.append(user_id)
         user_str = parse_list_into_str(user_list)
