@@ -1,11 +1,13 @@
-# 리스트를 string으로 파싱
+from utils.exceptions import ParsingException
+
+
 def parse_list_into_str(given_list):
     return ','.join(given_list)
 
 
 def parse_bytes_into_list(given_bytes):
     if given_bytes is None:
-        raise Exception
+        raise ParsingException
 
     parsed_list = []
     if given_bytes == '':
@@ -25,6 +27,6 @@ def parse_bytes_into_int(given_bytes):
 
 def parse_bytes_into_str(given_bytes):
     if given_bytes is None:
-        raise Exception
+        raise ParsingException
 
     return given_bytes.decode('UTF-8')
