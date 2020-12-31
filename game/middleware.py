@@ -1,8 +1,5 @@
-from urllib.parse import parse_qs
-
 from channels.auth import AuthMiddlewareStack
 from django.contrib.auth.models import AnonymousUser
-from django.db import close_old_connections
 from django.http import parse_cookie
 from rest_framework.exceptions import AuthenticationFailed
 

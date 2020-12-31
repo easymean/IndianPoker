@@ -64,8 +64,8 @@ def end_game(room_id):
 
 
 def init_betting(room_id):
-    z_name = f'{room_id}:betting'
-    r.delete(z_name)
+    zset_key = f'{room_id}:betting'
+    r.delete(zset_key)
 
 
 def end_round(room_id):

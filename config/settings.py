@@ -201,7 +201,7 @@ CORS_ALLOW_HEDAERS = (
 )
 
 LOGGING = {
-    'version':1,
+    'version': 1,
     'disable_existing_loggers': False,
     'filters': {
         'require_debug_false': {
@@ -211,6 +211,7 @@ LOGGING = {
             '()': 'django.utils.log.RequireDebugTrue',
         },
     },
+
     'formatters': {
         'django.server': {
             '()': 'django.utils.log.ServerFormatter',
@@ -221,6 +222,7 @@ LOGGING = {
             'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
         },
     },
+
     'handlers': {
         'console': {
             'level': 'INFO',
@@ -232,11 +234,7 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'django.server',
         },
-        'mail_admins' : {
-            'level': 'ERROR',
-            'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
-        },
+
         'file': {
             'level': 'INFO',
             'filters': ['require_debug_false'], # debug=false인 환경에서만
@@ -248,9 +246,10 @@ LOGGING = {
         }
 
     },
+
     'loggers': {
         'django': {
-            'handlers': ['console', 'mail_admins', 'file'],
+            'handlers': ['console', 'file'],
             'level': 'INFO',
         },
         'django.server': {

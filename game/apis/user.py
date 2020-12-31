@@ -12,7 +12,7 @@ def delete_user(user_id):
     r.delete(user_id)
 
 
-def check_user_state(user_id):
+def get_user_state(user_id):
     bytes_state = r.hget(user_id, "state")
     return parse_bytes_into_str(bytes_state)
 
