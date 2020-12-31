@@ -1,12 +1,12 @@
-from game.apis.common import parse_bytes_into_list, parse_list_into_str, parse_bytes_into_int
-from game.apis.user import check_user_state, give_users_cards, delete_user, get_user_card_in_this_round
+import logging
+
+from game.apis.common import parse_bytes_into_list, parse_list_into_str, parse_bytes_into_int, parse_bytes_into_str
+from game.apis.user import get_user_state, give_users_cards, delete_user, get_user_card_in_this_round
 from game.models import UserState, RoomState
-from utils.exceptions import InvalidMethod
+from utils.exceptions import GameAlreadyStarted, GameDidNotStart, RoomAlreadyFull
 from utils.redis_client import r
 
-
-def get_room_group_name(room_id):
-    return f'game_{room_id}'
+logger = logging.getLogger('apis.room')
 
 
 def find_room(room_id):
@@ -99,7 +99,7 @@ def user_enter_room(room_id, user_id):
         user_list = get_user_list(room_id)
 
         if user_id in user_list:
-            print("이미 존재하는 사용자입니다.")
+            logger.info('이미 존재하는 사용자입니다.')
             return
 
         if get_user_count(room_id) == 2:

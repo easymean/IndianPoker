@@ -1,7 +1,10 @@
-import random
+import random, logging
 
 from game.apis.common import parse_list_into_str, parse_bytes_into_list, parse_bytes_into_int, parse_bytes_into_str
+from utils.exceptions import ParsingException
 from utils.redis_client import r
+
+logger = logging.getLogger('apis.user')
 
 
 def find_user(user_id):
@@ -28,12 +31,12 @@ def get_user_point(user_id):
 
 
 def set_user_ready(user_id):
-    print(f'{user_id}님이 레디를 누르셨습니다.')
+    logger.info(f'{user_id}님이 레디를 누르셨습니다.')
     r.hset(user_id, "state", "READY")
 
 
 def set_user_wait(user_id):
-    print(f'{user_id}님이 레디를 취소하셨습니다.')
+    logger.info(f'{user_id}님이 레디를 취소하셨습니다.')
     r.hset(user_id, "state", "WAIT")
 
 

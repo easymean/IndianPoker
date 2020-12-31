@@ -1,5 +1,9 @@
+import logging
+
 from rest_framework.views import exception_handler
 from rest_framework.exceptions import APIException
+
+logger = logging.getLogger('exception')
 
 
 def custom_exception_handler(exc, context):
@@ -7,6 +11,11 @@ def custom_exception_handler(exc, context):
 
     if response is not None:
         response.data['status_code'] = response.status_code
+
+    if response.status_code/100 == 4:
+        logger.warning(exc.detail)
+    else:
+        logger.error(exc.detail)
 
     return response
 
