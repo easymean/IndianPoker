@@ -247,8 +247,9 @@ class GameInfoConsumer(AsyncJsonWebsocketConsumer):
         die = False
         if loser is not None:
             die = True
-
-        [(winner, winner_card), (loser, loser_card)] = who_is_winner_loser(room_id, betting_round, loser)
+            [(winner, winner_card), (loser, loser_card)] = open_card_after_die(room_id, betting_round, loser)
+        else:
+            [(winner, winner_card), (loser, loser_card)] = who_is_winner_loser_and_open_card(room_id, betting_round)
 
         if winner == 'TIE':
             await self.channel_layer.group_send(

@@ -17,7 +17,13 @@ def delete_room(room_id):
     r.delete(room_id)
 
 
-# 방에 있는 유저들이 list로 리턴
+def is_user_in_room(room_id):
+    if r.hexists(room_id, "users"):
+        return True
+    else:
+        return False
+
+
 def get_user_list(room_id):
     users_str = r.hget(room_id, "users")
     return parse_bytes_into_list(users_str)
@@ -88,7 +94,7 @@ def increase_order(room_id):
 
 
 def user_enter_room(room_id, user_id):
-    if r.hexists(room_id, "users") == 1:
+    if is_user_in_room(room_id):
 
         user_list = get_user_list(room_id)
 
@@ -130,29 +136,30 @@ def who_is_next(room_id):
     return next_user, opponent
 
 
-def who_is_winner_loser(room_id, this_round, loser=None):
+def open_card_after_die(room_id, this_round, loser):
+    user_list = get_user_list(room_id)
+    winner = ''
+    for user in user_list:
+        if user != loser:
+            winner = user
+
+    winner_card = get_user_card_in_this_round(user_id=winner, this_round=this_round)
+    loser_card = get_user_card_in_this_round(user_id=loser, this_round=this_round)
+    return [(winner, winner_card), (loser, loser_card)]
+
+
+def who_is_winner_loser_and_open_card(room_id, this_round):
 
     user_list = get_user_list(room_id)
 
-    if loser is not None:
-        if loser == user_list[0]:
-            winner = user_list[1]
-        else:
-            winner = user_list[0]
-        winner_card = get_user_card_in_this_round(user_id=winner, this_round=this_round)
-        loser_card = get_user_card_in_this_round(user_id=loser, this_round=this_round)
+    card_list = []
+    for user in user_list:
+        card = get_user_card_in_this_round(user, this_round)
+        card_list.append(card)
 
-        return [(winner, winner_card), (loser, loser_card)]
-
+    if card_list[0] < card_list[1]:
+        return [(user_list[1], card_list[1]), (user_list[0], card_list[0])]
+    elif card_list[0] > card_list[1]:
+        return [(user_list[0], card_list[0]), (user_list[1], card_list[1])]
     else:
-        card_list = []
-        for user in user_list:
-            card = get_user_card_in_this_round(user, this_round)
-            card_list.append(card)
-
-        if card_list[0] < card_list[1]:
-            return [(user_list[1], card_list[1]), (user_list[0], card_list[0])]
-        elif card_list[0] > card_list[1]:
-            return [(user_list[0], card_list[0]), (user_list[1], card_list[1])]
-        else:
-            return [('TIE', card_list[0]), ('TIE', card_list[1])]
+        return [('TIE', card_list[0]), ('TIE', card_list[1])]
