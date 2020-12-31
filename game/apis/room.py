@@ -34,15 +34,15 @@ def get_user_count(room_id):
     return len(user_list)
 
 
-def check_room_state(room_id):
-    return r.hget(room_id, "state").decode()
+def get_room_state(room_id):
+    state = r.hget(room_id, "state")
+    return parse_bytes_into_str(state)
 
 
 def are_both_users_ready(room_id):
     user_list = get_user_list(room_id)
     for user in user_list:
-        if check_user_state(user) != UserState.READY:
-            print(check_user_state(user))
+        if get_user_state(user) != UserState.READY:
             return False
     return True
 
@@ -61,7 +61,7 @@ def set_game_start(room_id):
 
 
 def end_game(room_id):
-    if check_room_state(room_id) != RoomState.START:
+    if get_room_state(room_id) != RoomState.START:
         raise GameDidNotStart
 
     r.hset(room_id, 'state', 'READY')
@@ -113,7 +113,7 @@ def user_enter_room(room_id, user_id):
         r.hset(room_id, "users", user_id)
 
 
-def exit_room(room_id, user_id):
+def user_leave_room(room_id, user_id):
     delete_user(user_id)
 
     user_list = get_user_list(room_id)
