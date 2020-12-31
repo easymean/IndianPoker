@@ -56,8 +56,9 @@ def set_game_start(room_id):
     r.hset(room_id, 'order', 0)
 
     user_list = get_user_list(room_id)
-    give_users_cards(user_list[0], user_list[1])
-    print('set game start')
+
+    for user in user_list:
+        give_users_cards(user)
 
 
 def end_game(room_id):

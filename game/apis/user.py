@@ -40,32 +40,22 @@ def set_user_wait(user_id):
     r.hset(user_id, "state", "WAIT")
 
 
-def give_users_cards(user1, user2):
+def give_users_cards(user1):
     list1 = []
-    list2 = []
     ran_num = random.randint(1, 10)
 
     for i in range(10):
         while ran_num in list1:
-            ran_num = random.randint(1,10)
+            ran_num = random.randint(1, 10)
         list1.append(ran_num)
 
-    for i in range(10):
-        while ran_num in list2:
-            ran_num = random.randint(1,10)
-        list2.append(ran_num)
-
     list1_str = parse_list_into_str(map(str, list1))
-    list2_str = parse_list_into_str(map(str, list2))
 
     r.hset(user1, "cards", list1_str)
-    r.hset(user2, "cards", list2_str)
 
 
 def get_user_card_in_this_round(user_id, this_round):
-    try:
-        cards_bytes = r.hget(user_id, "cards")
-        parsed_card_list = parse_bytes_into_list(cards_bytes)
-        return parsed_card_list[this_round]
-    except Exception as e:
-        print(e)
+    cards_bytes = r.hget(user_id, "cards")
+    parsed_card_list = parse_bytes_into_list(cards_bytes)
+    return parsed_card_list[this_round]
+
