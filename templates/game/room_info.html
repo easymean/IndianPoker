@@ -16,6 +16,35 @@
     <input id="make-room-submit" type="button" value="Enter">
 
     <script>
+        //  const cookieName = 'user_id';
+        //  let getCookie = (name) => {
+        //     let cookieArr = document.cookie.split(';');
+        //
+        //     for(let i=0; i<cookieArr.length; i++){
+        //         let cookie = cookieArr[i];
+        //         //console.log(cookie);
+        //         while(cookie.charAt(0)===' '){
+        //             cookie = cookie.substring(1);
+        //         }
+        //         let cookieVal = cookie.split('=');
+        //         if(cookieVal[0] === name){
+        //             //console.log(cookieVal);
+        //             return cookieVal[1];
+        //         }
+        //     }
+        // };
+        //  const userId = getCookie(cookieName);
+         //console.log(userId)
+
+        const createRoomUrl = `http://${window.location.host}/api/game/room/`;
+        const createRoom = async (roomName) => {
+            return await fetch(createRoomUrl, {
+                method : 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({'name': roomName})
+            });
+        }
+
         document.querySelector('#room-code-input').focus();
         document.querySelector('#room-code-input').onkeyup = function(e) {
             if (e.keyCode === 13) {  // enter, return
@@ -23,24 +52,10 @@
             }
         };
 
-        document.querySelector('#enter-room-submit').onclick = function(e) {
-            var roomCode = document.querySelector('#room-code-input').value;
+        document.querySelector('#enter-room-submit').onclick = (e) => {
+            let roomCode = document.querySelector('#room-code-input').value;
             window.location.href = `http://${window.location.host}/api/game/room/${roomCode}/`;
-            // var enterRoomUrl = `http://${window.location.host}/api/game/room/${roomCode}/`;
-            //
-            // fetch(enterRoomUrl, {
-            //     method: 'GET',
-            //     headers: {
-            //         'Content-Type': 'application/json'
-            //     }
-            // }).then(res => res.json())
-            // .then ((json) => {
-            //     var roomId = json.room_id;
-            //    window.location.href = `http://${window.location.host}/api/game/room/${roomId}/`;
-            // }).catch(error =>
-            //     console.error('ERROR: ', error));
 
-            //window.location.pathname = `api/game/room/${roomCode}/`;
         };
 
         document.querySelector('#room-name-input').focus();
@@ -50,26 +65,20 @@
             }
         };
 
-        let roomId;
-        document.querySelector('#make-room-submit').onclick = function(e) {
-            var roomName = document.querySelector('#room-name-input').value;
-            var createRoomUrl = `http://${window.location.host}/api/game/room/`;
-            var data = {'name': roomName};
+        document.querySelector('#make-room-submit').onclick = (e) => {
+            let roomName = document.querySelector('#room-name-input').value;
 
-
-            fetch(createRoomUrl, {
-                method: 'POST',
-                body: JSON.stringify(data),
-                headers: {
-                    'Content-Type': 'application/json'
+            const createAndEnterRoom = async (roomName) => {
+                try {
+                    let res = await createRoom(roomName);
+                    let json = await res.json();
+                    let roomId = json.id;
+                    window.location.href = `http://${window.location.host}/api/game/room/${roomId}/`;
+                }catch (err){
+                    console.log(err);
                 }
-            }).then(response => response.json())
-            .then((json) => {
-                roomId = json.id;
-                window.location.href = `http://${window.location.host}/api/game/room/${roomId}/`;
-
-            }).catch(error =>
-                console.error('ERROR:', error));
+            };
+            createAndEnterRoom(roomName);
 
         };
 

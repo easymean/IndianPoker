@@ -20,100 +20,66 @@
     <input id="die-message-submit" type="button" value="Die">
 
     <script type="text/javascript">
-        const roomId = "{{ room_id }}";
-        const cookieName = 'user_id';
+         const roomId = "{{ room_id }}";
+         const ws = new WebSocket(
+            `ws://${window.location.host}/ws/game/room/${roomId}/`);
 
-        var isReadyToggled;
+        let isReadyToggled;
+        let isGameStarted;
 
-
-        let getCookie = (name) => {
-            let cookieArr = document.cookie.split(';');
-
-            for(let i=0; i<cookieArr.length; i++){
-                let cookie = cookieArr[i];
-                console.log(cookie);
-                while(cookie.charAt(0)===' '){
-                    cookie = cookie.substring(1);
-                }
-                let cookieVal = cookie.split('=');
-                if(cookieVal[0] === name){
-                    console.log(cookieVal);
-                    return cookieVal[1];
-                }
+        const send = async(type, round, bet) => {
+            let msg = {
+                type: type,
+                round: round,
+                bet: bet
             }
-        };
-        const userId = getCookie(cookieName);
-
-        let ws = new WebSocket(
-            `ws://${window.location.host}/ws/game/room/${roomId}/`
-        );
+            await ws.send(JSON.stringify(msg));
+        }
 
         ws.onopen = (e) => {
             console.log('WebSocket opened');
-             let msg = {
-                    type : 'ENTER',
-                 sender_id: userId,
-            };
-            ws.send(
-                  JSON.stringify(msg)
-            );
+            send('ENTER', 0, 1);
             isReadyToggled = false;
         };
 
-
-
         document.querySelector('#ready-message-submit').onclick = (e) => {
 
-            let msg;
             if(isReadyToggled === false){
-                msg = {
-                    type: 'READY',
-                    sender_id: userId,
-                };
-                ws.send(JSON.stringify(msg));
+                send('READY', 0, 1);
+                isReadyToggled = true;
             }else {
-                msg = {
-                    type: 'WAIT',
-                    sender_id: userId,
-                };
-                ws.send(JSON.stringify(msg));
+                send('WAIT', 0, 1);
+                isReadyToggled = false;
             }
-             isReadyToggled = !isReadyToggled;
 
         };
 
         document.querySelector('#exit-message-submit').onclick = (e) => {
-            let msg = {
-                type: 'EXIT',
-                sender_id: userId,
-            };
-            ws.send(JSON.stringify(msg));
-
+            send('EXIT', 0, 1);
         };
 
         document.querySelector('#check-message-submit').onclick = (e) => {
-            let msg = {
-                    type: 'CHECK',
-                    sender_id: userId,
-                    bet: 1
-                };
-            ws.send(JSON.stringify(msg));
+            send('CHECK', 0, 1);
         }
 
         ws.onmessage = (event) => {
             let data = JSON.parse(event.data);
             let msgObj = JSON.parse(data.message);
+            let result = msgObj.result;
 
-            let msg;
-            if(data.type === 'START'){
-                 msg = {
-                     type: 'START',
-                     sender_id: userId,
-                };
-                ws.send(JSON.stringify(msg));
-
+            if (data.type === 'RESULT'){
+                let winner  = result.winner;
+                let loser = result.loser;
+                let my = result.my_card;
+                let opp = result.opponent_card;
+                console.log(winner + '가 이겼습니다.')
+                console.log(loser + '가 졌습니다.')
+                console.log('내 카드는 '+my + ' 입니다.')
+                console.log('상대방 카드는 '+opp + ' 입니다.')
             }
-            console.log(msgObj.message);
+
+
+            //console.log(msgObj);
             document.querySelector('#chat-log').value += (msgObj.message + '\n');
 
         };
